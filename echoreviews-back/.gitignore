@@ -1,0 +1,41 @@
+# 🔐 Environment variables
+.env
+.env.*
+
+# 🐍 Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Django
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+
+# Migrations cache (NO las migrations reales)
+*/migrations/__pycache__/
+
+# 🐳 Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 🧠 Pytest / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Node (por si mezclas frontend aquí en algún momento)
+node_modules/

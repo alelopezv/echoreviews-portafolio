@@ -1,0 +1,8 @@
+django
+djangorestframework
+python-dotenv
+requests
+django-cors-headers
+mysqlclient>=2.2.1
+Pillow
+djangorestframework-simplejwt

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <!-- Básico -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO -->
+    <title>EchoReviews | Plataforma de Reseñas de Anime, Música y Videojuegos</title>
+    <meta name="description" content="EchoReviews es una plataforma de crítica cultural donde puedes escribir y descubrir reseñas de anime, música y videojuegos." />
+    <meta name="keywords" content="reseñas, anime, música, videojuegos, reviews, cultura, crítica, plataforma, Django, React" />
+    <meta name="author" content="Alejandro López" />
+
+    <!-- Open Graph (para compartir en redes) -->
+    <meta property="og:title" content="EchoReviews" />
+    <meta property="og:description" content="Descubre y escribe reseñas de anime, música y videojuegos." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://localhost:5173" />
+    <meta property="og:image" content="/preview.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    <!-- Tema -->
+    <meta name="theme-color" content="#0f172a" />
+
+    <!-- Performance básica -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Layout fix -->
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        background-color: #020617; /* coherente con tu Tailwind oscuro */
+      }
+      #root {
+        height: 100%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>Necesitas habilitar JavaScript para usar EchoReviews.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
