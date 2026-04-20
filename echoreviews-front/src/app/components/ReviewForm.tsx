@@ -59,8 +59,13 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
       alert("Reseña enviada correctamente");
       onClose();
     } catch (err: any) {
-      console.error("ERROR COMPLETO:", err.response?.data || err);
-      alert(JSON.stringify(err.response?.data || err));
+      console.error(err);
+
+      const errorMessage =
+        err.response?.data?.detail ||
+        "Error al enviar la reseña";
+
+      alert(errorMessage);
     }
   };
 
