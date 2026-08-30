@@ -1,8 +1,9 @@
-django
-djangorestframework
-python-dotenv
-requests
-django-cors-headers
-mysqlclient>=2.2.1
-Pillow
-djangorestframework-simplejwt
+# Versiones fijadas para que el proyecto se levante igual dentro de un año.
+# Sin fijarlas, un `docker compose build` futuro podría traer una versión
+# mayor de Django e incompatibilidades que no existían al escribir esto.
+Django==5.2.17
+djangorestframework==3.18.0
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.9.0
+mysqlclient==2.2.7
+Pillow==12.3.0

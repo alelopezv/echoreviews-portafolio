@@ -13,6 +13,26 @@ class ReviewSerializer(serializers.ModelSerializer):
     media_type = serializers.CharField(source="media.type", read_only=True)
     media_image = serializers.SerializerMethodField()
     hashtags = serializers.StringRelatedField(many=True)
+    
+    crop_x = serializers.IntegerField(
+        source="media.crop_x",
+        read_only=True
+    )
+
+    crop_y = serializers.IntegerField(
+        source="media.crop_y",
+        read_only=True
+    )
+
+    crop_width = serializers.IntegerField(
+        source="media.crop_width",
+        read_only=True
+    )
+
+    crop_height = serializers.IntegerField(
+        source="media.crop_height",
+        read_only=True
+    )
 
     def get_full_name(self, obj):
         first = obj.user.first_name or ""
@@ -48,6 +68,10 @@ class ReviewSerializer(serializers.ModelSerializer):
             "hashtags",
             "username",
             "full_name",
+            "crop_x",
+            "crop_y",
+            "crop_width",
+            "crop_height"
         ]
 
 

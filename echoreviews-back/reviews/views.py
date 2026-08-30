@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status, permissions  # ✅ quitado "request" que pisaba el parámetro
 from django.utils import timezone
 from .models import Review
 from media.models import Media, MediaSuggestion
@@ -15,7 +15,6 @@ class ApprovedReviewsView(APIView):
     def get(self, request):
         reviews = Review.objects.filter(status="approved")
         serializer = ReviewSerializer(reviews, many=True, context={"request": request})
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -29,75 +28,78 @@ class CreateReviewView(APIView):
 
         data = serializer.validated_data
 
-        # 🔥 manejar media
-        media_id = data.get("media")
-        media_title = data.get("media_title")
-        media_type = data.get("media_type")
+        # 🔥 Leer media_title y media_type desde request.data directamente
+        # (no están en el serializer, así que validated_data no los tiene)
+        media_obj = data.get("media")          # instancia de Media o None
+        media_title = request.data.get("media_title", "").strip()
+        media_type = request.data.get("media_type", "anime")
 
-        if not media_id and media_title:
-            existing_media = Media.objects.filter(
-                title__iexact=media_title.strip()
-            ).first()
+        media_suggestion = None
 
-            if existing_media:
-                # ✅ FIX IMPORTANTE: asegurar PK limpio
-                data["media"] = existing_media.id
-            else:
-                suggestion = MediaSuggestion.objects.create(
-                    title=media_title.strip(),
-                    type=media_type,
-                    created_by=request.user,
-                    image=request.FILES.get("image")
-                )
+        if not media_obj:
+            if media_title:
+                # Buscar si ya existe una Media con ese título
+                existing_media = Media.objects.filter(
+                    title__iexact=media_title
+                ).first()
 
-                data["media"] = None
-                data["media_suggestion"] = suggestion
+                if existing_media:
+                    # ✅ Asignar la instancia, no el ID
+                    data["media"] = existing_media
+                else:
+                    # Crear sugerencia con imagen y crop si se adjuntaron
+                    media_suggestion = MediaSuggestion.objects.create(
+                        title=media_title,
+                        type=media_type,
+                        created_by=request.user,
+                        image=request.FILES.get("image"),
+                        crop_x=request.data.get("crop_x", 0),
+                        crop_y=request.data.get("crop_y", 0),
+                        crop_width=request.data.get("crop_width", 100),
+                        crop_height=request.data.get("crop_height", 150),
+                    )
+                    data["media"] = None
 
-        # 🔥 manejar hashtags
+        # 🔥 Manejar hashtags
         hashtag_ids = data.get("hashtags", [])
         hashtag_names = data.get("hashtag_suggestions", [])
 
         final_hashtags = list(hashtag_ids)
-        new_suggestions = []
+        new_hashtag_suggestions = []
 
         for name in hashtag_names:
             clean_name = name.strip().lower()
-
             existing = Hashtag.objects.filter(name__iexact=clean_name).first()
-
             if existing:
                 final_hashtags.append(existing)
             else:
-                suggestion = HashtagSuggestion.objects.create(
+                hs = HashtagSuggestion.objects.create(
                     name=clean_name,
                     created_by=request.user
                 )
-                new_suggestions.append(suggestion)
+                new_hashtag_suggestions.append(hs)
 
         data["hashtags"] = final_hashtags
 
-        # ✅ SOLO UNA VEZ (IMPORTANTE FIX)
+        # ✅ Guardar review una sola vez
         review = serializer.save(
             user=request.user,
             status="pending",
-            approved_by=None
+            approved_by=None,
         )
 
-        # conectar media_suggestion si existe
-        if "media_suggestion" in data:
-            review.media_suggestion = data["media_suggestion"]
+        # Vincular media_suggestion si se creó
+        if media_suggestion:
+            review.media_suggestion = media_suggestion
             review.save()
 
-        # conectar hashtags sugeridos
-        for suggestion in new_suggestions:
-            suggestion.reviews.add(review)
+        # Vincular hashtag suggestions
+        for hs in new_hashtag_suggestions:
+            hs.reviews.add(review)
 
         return Response({
             "message": "Review creada correctamente",
-            "review": ReviewSerializer(
-                review,
-                context={"request": request}
-            ).data
+            "review": ReviewSerializer(review, context={"request": request}).data
         }, status=status.HTTP_201_CREATED)
 
 
@@ -108,7 +110,6 @@ class MyReviewsView(APIView):
     def get(self, request):
         reviews = Review.objects.filter(user=request.user)
         serializer = ReviewSerializer(reviews, many=True, context={"request": request})
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -131,7 +132,7 @@ class ApproveReviewView(APIView):
             "message": "Review aprobada",
             "review": ReviewSerializer(review, context={"request": request}).data
         }, status=status.HTTP_200_OK)
-        
+
 
 class ReviewDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -142,7 +143,6 @@ class ReviewDetailView(APIView):
         except Review.DoesNotExist:
             return None
 
-    # 🔍 Ver una review específica
     def get(self, request, pk):
         review = self.get_object(pk)
         if not review:
@@ -151,7 +151,6 @@ class ReviewDetailView(APIView):
         serializer = ReviewSerializer(review, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # ✏️ Editar review
     def patch(self, request, pk):
         review = self.get_object(pk)
         if not review:
@@ -169,7 +168,6 @@ class ReviewDetailView(APIView):
             "review": ReviewSerializer(review, context={"request": request}).data
         }, status=status.HTTP_200_OK)
 
-    # 🗑 Eliminar review
     def delete(self, request, pk):
         review = self.get_object(pk)
         if not review:

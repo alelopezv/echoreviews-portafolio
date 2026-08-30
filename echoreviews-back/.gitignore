@@ -1,22 +1,24 @@
-# 🔐 Environment variables
+# 🔐 Variables de entorno
 .env
 .env.*
+!.env.example
 
 # 🐍 Python
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-*.pyc
 
-# Django
+# 🗄 Django
 db.sqlite3
 *.sqlite3
-media/
 staticfiles/
 
-# Migrations cache (NO las migrations reales)
-*/migrations/__pycache__/
+# 📁 Archivos subidos por usuarios (MEDIA_ROOT).
+# OJO: la barra inicial ancla la regla a la raíz del repo.
+# Sin ella, un patrón como "media/" también excluiría la app
+# de Django echoreviews-back/media/ — que es justo lo que pasaba antes.
+/mediafiles/
 
 # 🐳 Docker
 docker-compose.override.yml
@@ -36,6 +38,3 @@ Thumbs.db
 .coverage
 htmlcov/
 .pytest_cache/
-
-# Node (por si mezclas frontend aquí en algún momento)
-node_modules/

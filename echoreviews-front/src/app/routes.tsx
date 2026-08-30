@@ -8,6 +8,7 @@ import { AllHashtagsPage } from "./components/AllHashtagsPage";
 import { NotFoundPage } from "./components/NotFoundPage";
 import { ProfilePage } from "./components/ProfilePage";
 import { AllReviewsPage } from "./components/AllReviewsPage";
+import { MediaPage } from "./components/MediaPage";
 
 export const router = createBrowserRouter([
   {
@@ -22,7 +23,7 @@ export const router = createBrowserRouter([
       { path: "hashtags", element: <AllHashtagsPage /> },
       { path: "all-reviews", element: <AllReviewsPage /> },
       { path: "*", element: <NotFoundPage /> },
-
+      { path: "media", element: <MediaPage /> },
     ],
   },
 ]);

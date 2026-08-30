@@ -3,8 +3,14 @@ services:
     build: .
     image: echoreviews-api
     container_name: echoreviews-api-container
+    # .env es opcional: los valores de abajo ya bastan para desarrollo local,
+    # así que un `git clone` + `docker compose up` funciona sin pasos previos.
+    # Antes esto era `- .env` a secas y Compose fallaba al arrancar si el
+    # archivo no existía (y .env está en .gitignore, así que nunca existía
+    # en un clon nuevo).
     env_file:
-      - .env
+      - path: .env
+        required: false
     volumes:
       - .:/app
     ports:
@@ -22,7 +28,7 @@ services:
     dns:
       - 8.8.8.8
       - 1.1.1.1
-  
+
   mysql:
     image: mysql:8.4
     container_name: echoreviews-mysql
@@ -37,7 +43,7 @@ services:
       - echoreviews_mysql_data:/var/lib/mysql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpassword"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot_password"]
       interval: 10s
       timeout: 5s
       retries: 10
