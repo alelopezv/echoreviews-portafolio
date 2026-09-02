@@ -8,32 +8,9 @@ from hashtags.models import Hashtag
 class ReviewSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
     full_name = serializers.SerializerMethodField()
-
-    media_title = serializers.CharField(source="media.title", read_only=True)
-    media_type = serializers.CharField(source="media.type", read_only=True)
-    media_image = serializers.SerializerMethodField()
     hashtags = serializers.StringRelatedField(many=True)
+    media = serializers.SerializerMethodField()
     
-    crop_x = serializers.IntegerField(
-        source="media.crop_x",
-        read_only=True
-    )
-
-    crop_y = serializers.IntegerField(
-        source="media.crop_y",
-        read_only=True
-    )
-
-    crop_width = serializers.IntegerField(
-        source="media.crop_width",
-        read_only=True
-    )
-
-    crop_height = serializers.IntegerField(
-        source="media.crop_height",
-        read_only=True
-    )
-
     def get_full_name(self, obj):
         first = obj.user.first_name or ""
         last = obj.user.last_name or ""
@@ -51,7 +28,30 @@ class ReviewSerializer(serializers.ModelSerializer):
             return obj.media.image.url
 
         return None
+    
+    def get_media(self, obj):
+        # Si la reseña no tiene obra asociada, devolvemos None.
+        # La clave "media" va a existir igual en el JSON, con valor null.
+        # Esta línea es todo el arreglo del bug.
+        if obj.media is None:
+            return None
 
+        # Un diccionario de Python se convierte en un objeto JSON.
+        return {
+            "title": obj.media.title,
+            "type": obj.media.type,
+            # Reutilizamos el método que ya tenías: sabe armar la URL
+            # absoluta y ya maneja el caso de imagen vacía.
+            "image": self.get_media_image(obj),
+            # Los cuatro valores de recorte agrupados, porque pertenecen juntos.
+            "crop": {
+                "x": obj.media.crop_x,
+                "y": obj.media.crop_y,
+                "width": obj.media.crop_width,
+                "height": obj.media.crop_height,
+            },
+    }
+    
     class Meta:
         model = Review
         fields = [
@@ -62,16 +62,10 @@ class ReviewSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
             "updated_at",
-            "media_title",
-            "media_type",
-            "media_image",
+            "media",          # ← reemplaza a los seis anteriores
             "hashtags",
             "username",
             "full_name",
-            "crop_x",
-            "crop_y",
-            "crop_width",
-            "crop_height"
         ]
 
 
