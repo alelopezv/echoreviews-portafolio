@@ -4,7 +4,8 @@ from .views import (
     CreateReviewView,
     MyReviewsView,
     ApproveReviewView,
-    ReviewDetailView
+    RejectReviewView,
+    ReviewDetailView,
 )
 
 urlpatterns = [
@@ -12,6 +13,6 @@ urlpatterns = [
     path("create/", CreateReviewView.as_view(), name="create-review"),
     path("mine/", MyReviewsView.as_view(), name="my-reviews"),
     path("<int:pk>/approve/", ApproveReviewView.as_view(), name="approve-review"),
+    path("<int:pk>/reject/", RejectReviewView.as_view(), name="reject-review"),
     path("<int:pk>/", ReviewDetailView.as_view(), name="review-detail"),
-    path("my-reviews/", MyReviewsView.as_view()),
 ]

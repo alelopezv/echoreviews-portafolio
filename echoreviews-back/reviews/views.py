@@ -28,37 +28,40 @@ class CreateReviewView(APIView):
 
         data = serializer.validated_data
 
-        # 🔥 Leer media_title y media_type desde request.data directamente
-        # (no están en el serializer, así que validated_data no los tiene)
-        media_obj = data.get("media")          # instancia de Media o None
-        media_title = request.data.get("media_title", "").strip()
-        media_type = request.data.get("media_type", "anime")
+        # Ahora sí vienen de validated_data: el serializer los declara como
+        # write_only y ya validó que estén completos si no se eligió una obra.
+        media_obj = data.get("media")
+        media_title = (data.get("media_title") or "").strip()
 
         media_suggestion = None
 
-        if not media_obj:
-            if media_title:
-                # Buscar si ya existe una Media con ese título
-                existing_media = Media.objects.filter(
-                    title__iexact=media_title
-                ).first()
+        if not media_obj and media_title:
+            # ¿La obra ya está en el catálogo aprobado? Entonces se usa esa y
+            # no hace falta proponer nada.
+            existing_media = Media.objects.filter(title__iexact=media_title).first()
 
-                if existing_media:
-                    # ✅ Asignar la instancia, no el ID
-                    data["media"] = existing_media
-                else:
-                    # Crear sugerencia con imagen y crop si se adjuntaron
-                    media_suggestion = MediaSuggestion.objects.create(
-                        title=media_title,
-                        type=media_type,
-                        created_by=request.user,
-                        image=request.FILES.get("image"),
-                        crop_x=request.data.get("crop_x", 0),
-                        crop_y=request.data.get("crop_y", 0),
-                        crop_width=request.data.get("crop_width", 100),
-                        crop_height=request.data.get("crop_height", 150),
-                    )
-                    data["media"] = None
+            if existing_media:
+                data["media"] = existing_media
+            else:
+                # Obra nueva: se crea una propuesta propia de este usuario.
+                #
+                # Ojo: NO se reutiliza la propuesta pendiente de otra persona.
+                # Si Ana y Bruno proponen la misma obra, cada uno aporta su
+                # portada y su descripción, y un admin decide cuál queda. Antes
+                # esto era imposible porque MediaSuggestion.title era único y el
+                # segundo en proponer recibía un IntegrityError.
+                media_suggestion = MediaSuggestion.objects.create(
+                    title=media_title,
+                    type=data["media_type"],
+                    description=data["media_description"],
+                    created_by=request.user,
+                    image=data["image"],
+                    crop_x=data.get("crop_x", 0),
+                    crop_y=data.get("crop_y", 0),
+                    crop_width=data.get("crop_width", 100),
+                    crop_height=data.get("crop_height", 150),
+                )
+                data["media"] = None
 
         # 🔥 Manejar hashtags
         hashtag_ids = data.get("hashtags", [])
@@ -126,10 +129,49 @@ class ApproveReviewView(APIView):
         review.status = "approved"
         review.approved_by = request.user
         review.approved_at = timezone.now()
+        review.rejection_reason = ""   # si venía rechazada, el motivo ya no aplica
         review.save()
 
         return Response({
             "message": "Review aprobada",
+            "review": ReviewSerializer(review, context={"request": request}).data
+        }, status=status.HTTP_200_OK)
+
+
+# 🛠 Rechazar review (admin)
+class RejectReviewView(APIView):
+    """Devuelve la reseña a su autor con un motivo, en vez de reescribirla.
+
+    Antes un admin podía editar el contenido de cualquier reseña y publicarla
+    sin dejar rastro, o sea, cambiar la opinión de otra persona y dejarla
+    firmada con su nombre. Moderar es decidir si algo se publica; escribir la
+    reseña le corresponde solo a su autor.
+    """
+    permission_classes = [permissions.IsAdminUser]
+
+    def patch(self, request, pk):
+        try:
+            review = Review.objects.get(pk=pk)
+        except Review.DoesNotExist:
+            return Response({"detail": "Review no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
+        reason = (request.data.get("reason") or "").strip()
+
+        # Sin motivo el rechazo no sirve: el autor no sabría qué corregir.
+        if not reason:
+            return Response(
+                {"reason": "Se requiere un motivo para rechazar la reseña."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        review.status = "rejected"
+        review.rejection_reason = reason
+        review.approved_by = None
+        review.approved_at = None
+        review.save()
+
+        return Response({
+            "message": "Review rechazada",
             "review": ReviewSerializer(review, context={"request": request}).data
         }, status=status.HTTP_200_OK)
 
@@ -156,12 +198,22 @@ class ReviewDetailView(APIView):
         if not review:
             return Response({"detail": "No encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
-        if review.user != request.user and not request.user.is_staff:
+        # Solo el autor edita su propia reseña. Un admin modera cambiando el
+        # estado (aprobar / rechazar con motivo), no reescribiendo el texto:
+        # la opinión es de quien la firma.
+        if review.user != request.user:
             return Response({"detail": "No autorizado"}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = ReviewCreateSerializer(review, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        # Corregir una reseña rechazada la devuelve a la cola de moderación.
+        # Es un reenvío, no una publicación directa.
+        if review.status == "rejected":
+            review.status = "pending"
+            review.rejection_reason = ""
+            review.save()
 
         return Response({
             "message": "Review actualizada",
