@@ -14,7 +14,11 @@ class MediaListView(APIView):
 
     def get(self, request):
         media = Media.objects.filter(status="approved")
-        serializer = MediaSerializer(media, many=True)
+        # context={'request': ...} es lo que hace que DRF devuelva la URL
+        # ABSOLUTA de la imagen. Sin él manda solo la ruta relativa y el
+        # frontend tiene que pegarle el host a mano, con una IP fija que
+        # impide desplegar. Así queda igual que ReviewSerializer.
+        serializer = MediaSerializer(media, many=True, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -35,7 +39,7 @@ class MediaDetailView(APIView):
         if not media:
             return Response({"detail": "No encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = MediaSerializer(media)
+        serializer = MediaSerializer(media, context={'request': request})
         return Response(serializer.data)
 
     # ✏️ Editar (solo admin)
@@ -50,7 +54,7 @@ class MediaDetailView(APIView):
         if media.status != "approved":
             return Response({"detail": "Media no aprobado"}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = MediaSerializer(media, data=request.data, partial=True)
+        serializer = MediaSerializer(media, data=request.data, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
