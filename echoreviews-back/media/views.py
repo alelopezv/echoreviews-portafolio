@@ -93,11 +93,16 @@ def aprobar_sugerencia(suggestion):
 
     Devuelve (media, error). Si error no es None, no se modificó nada.
     """
+    # La señal real de "ya está aprobada" es tener una Media detrás, no el
+    # campo status.
+    #
+    # No se comprueba status == "approved" a propósito: el desplegable que
+    # antes tenía el admin dejaba propuestas marcadas como aprobadas SIN Media
+    # creada. Bloquearlas por el status dejaba ese estado imposible de reparar
+    # — la propuesta decía "aprobada", el catálogo seguía vacío, y volver a
+    # aprobarla no hacía nada. Ahora esas se pueden completar.
     if suggestion.approved_media:
         return None, "Ya vinculada a un media"
-
-    if suggestion.status == "approved":
-        return None, "Ya aprobada"
 
     if suggestion.status == "rejected":
         return None, "No se puede aprobar una sugerencia rechazada"
@@ -132,9 +137,14 @@ def aprobar_sugerencia(suggestion):
     # estado. Un queryset de Django es perezoso: si más abajo filtráramos
     # por él después de marcarlas como aprobadas, la consulta se volvería a
     # ejecutar con `status="pending"` y no devolvería ninguna.
+    # Se filtra por approved_media__isnull, no por status="pending": la propuesta
+    # que estamos aprobando puede venir marcada como "approved" sin Media detrás
+    # (herencia del desplegable viejo). Si filtráramos por status, quedaría fuera
+    # de su propio reenganche y su reseña seguiría huérfana.
     hermanas_ids = list(
         MediaSuggestion.objects
-        .filter(title__iexact=title, status="pending")
+        .filter(title__iexact=title, approved_media__isnull=True)
+        .exclude(status="rejected")
         .values_list("id", flat=True)
     )
 
