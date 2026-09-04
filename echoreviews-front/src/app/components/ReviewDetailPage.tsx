@@ -59,7 +59,7 @@ export function ReviewDetailPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="aspect-[21/9] rounded-2xl overflow-hidden">
           <img
-            src={review.media_image || "https://via.placeholder.com/1200x600"}
+            src={review.media?.image || "/no-poster.png"}
             alt={review.title}
             className="w-full h-full object-cover"
           />
@@ -70,8 +70,8 @@ export function ReviewDetailPage() {
       <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         {/* Category Badge */}
         <div className="flex justify-center mb-6">
-          <span className={`inline-flex items-center px-4 py-2 rounded-full border capitalize text-sm font-medium ${getCategoryColor(review.media_type)}`}>
-            {review.media_type}
+          <span className={`inline-flex items-center px-4 py-2 rounded-full border capitalize text-sm font-medium ${getCategoryColor(review.media?.type)}`}>
+            {review.media?.type}
           </span>
         </div>
 
@@ -82,7 +82,7 @@ export function ReviewDetailPage() {
 
         {/* Media Title */}
         <div className="text-xl text-slate-400 mb-8 italic">
-          {review.media_title}
+          {review.media?.title}
         </div>
 
         {/* Author & Meta */}
@@ -93,7 +93,7 @@ export function ReviewDetailPage() {
               className="w-12 h-12 rounded-full object-cover"
             />
             <div>
-              <div className="font-semibold text-white">{review.user}</div> {/* ALGO TEMPORAL review.author.name */}
+              <div className="font-semibold text-white">{review.full_name}</div> {/* ALGO TEMPORAL review.author.name */}
               {/* <div className="text-sm text-slate-400">@{review.author.username}</div> */}
             </div>
           </div>
@@ -150,19 +150,16 @@ export function ReviewDetailPage() {
         {/* Author Bio */}
         <div className="mt-12 p-6 rounded-2xl bg-slate-800/30 border border-slate-700/50">
           <div className="flex items-start gap-4">
-            <img
-              src={
-                review.media_image
-                  ? `http://127.0.0.1:8000${review.media_image}`
-                  : "https://via.placeholder.com/1200x600"
-              }
-              // alt={review.author.name}
-              className="w-16 h-16 rounded-full object-cover"
-            />
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500
+                flex items-center justify-center flex-none">
+              <span className="text-2xl font-bold text-white">
+                {review.full_name?.charAt(0).toUpperCase() || "U"}
+              </span>
+            </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <User className="w-4 h-4 text-purple-400" />
-                <span className="font-semibold text-white">{review.user}</span>
+                <span className="font-semibold text-white">{review.full_name}</span>
                 {/* <span className="text-slate-500">@{review.author.username}</span> */}
               </div>
               <p className="text-slate-400 text-sm">

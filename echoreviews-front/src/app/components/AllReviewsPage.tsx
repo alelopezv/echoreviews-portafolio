@@ -26,7 +26,7 @@ export function AllReviewsPage() {
           >
             <h2 className="text-white font-semibold">{r.title}</h2>
             <p className="text-slate-400 text-sm">
-              {r.media_title} • {r.media_type}
+              {r.media?.title} • {r.media_type}
             </p>
           </Link>
         ))}

@@ -125,7 +125,7 @@ export function HomePage() {
                   {/* Image */}
                   <div className="lg:col-span-1 aspect-[4/3] lg:aspect-auto overflow-hidden">
                     <img
-                      src={review.media_image || "https://via.placeholder.com/400x300"}
+                      src={review.media?.image || "https://via.placeholder.com/400x300"}
                       alt={review.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

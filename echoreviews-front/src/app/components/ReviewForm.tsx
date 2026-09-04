@@ -19,6 +19,7 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
   const [mediaTitle, setMediaTitle] = useState("");
   const [mediaType, setMediaType] = useState("anime");
   const [cropData, setCropData] = useState<any>(null);
+  const [mediaDescription, setMediaDescription] = useState("");
 
   useEffect(() => {
     api
@@ -48,6 +49,7 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
       } else {
         formData.append("media_title", mediaTitle);
         formData.append("media_type", mediaType);
+        formData.append("media_description", mediaDescription); 
       }
 
       if (image) {
@@ -134,6 +136,13 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
               <option value="music">Música</option>
               <option value="game">Videojuego</option>
             </select>
+            <textarea
+              value={mediaDescription}
+              onChange={(e) => setMediaDescription(e.target.value)}
+              rows={3}
+              placeholder="Sinopsis de la obra (de qué trata, no tu opinión)"
+              className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white"
+            />
           </div>
         )}
 
@@ -224,7 +233,12 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
         <div className="flex gap-3">
           <button
             type="submit"
-            disabled={rating === 0 || title.trim() === "" || comment.trim() === ""}
+            disabled={
+              rating === 0 ||
+              title.trim() === "" ||
+              comment.trim() === "" ||
+              (!mediaId && (!mediaTitle.trim() || !mediaDescription.trim() || !image))
+            }
             className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Publicar Reseña

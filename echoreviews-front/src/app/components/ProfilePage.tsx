@@ -1,4 +1,4 @@
-import { Star, Tv, Music, Gamepad2, Award } from "lucide-react";
+import { Award } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ReviewCard } from "./ReviewCard";
 import api from "../../services/api";
@@ -26,56 +26,6 @@ export function ProfilePage() {
   }, []);
   const stats = {
     totalReviews: reviews.length,
-  };
-
-  const recentActivity = [
-    {
-      id: "1",
-      type: "anime",
-      title: "Steins;Gate",
-      rating: 10,
-      date: "2026-03-15",
-    },
-    {
-      id: "2",
-      type: "music",
-      title: "OK Computer",
-      rating: 10,
-      date: "2026-03-12",
-    },
-    {
-      id: "3",
-      type: "game",
-      title: "The Last of Us Part II",
-      rating: 9,
-      date: "2026-03-10",
-    },
-  ];
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "anime":
-        return <Tv className="w-4 h-4" />;
-      case "music":
-        return <Music className="w-4 h-4" />;
-      case "game":
-        return <Gamepad2 className="w-4 h-4" />;
-      default:
-        return null;
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "anime":
-        return "text-purple-400 bg-purple-500/10 border-purple-500/20";
-      case "music":
-        return "text-pink-400 bg-pink-500/10 border-pink-500/20";
-      case "game":
-        return "text-blue-400 bg-blue-500/10 border-blue-500/20";
-      default:
-        return "";
-    }
   };
 
   return (
@@ -107,14 +57,20 @@ export function ProfilePage() {
 
         <div className="space-y-4">
           {reviews.map((review) => (
-            <ReviewCard key={review.id} review={review} />
-          ))}
-        </div>
+            <div key={review.id}>
+              <ReviewCard review={review} />
 
-        <div className="mt-8 text-center">
-          <p className="text-slate-500">
-            Este es un perfil de demostración. En producción se conectaría a una base de datos real.
-          </p>
+              {review.status === "rejected" && (
+                <div className="mt-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30">
+                  <p className="text-sm font-semibold text-red-400 mb-1">Reseña rechazada</p>
+                  <p className="text-sm text-slate-300">{review.rejection_reason}</p>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Corrígela y volverá a la cola de revisión.
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
