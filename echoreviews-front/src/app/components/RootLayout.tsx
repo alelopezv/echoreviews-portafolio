@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom"
-import { Home, Hash, Pen, User, Search } from "lucide-react";
+import { Home, Hash, Pen, User, Search, Library } from "lucide-react";
 import { useState } from "react";
 import { LoginModal } from "./LoginModal";
 
@@ -59,16 +59,33 @@ export function RootLayout() {
               </Link>
 
               <Link
-                to="/write"
+                to="/media"
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                  isActive("/write")
+                  isActive("/media")
                     ? "bg-purple-500/20 text-purple-300"
                     : "text-slate-400 hover:text-white hover:bg-slate-800/50"
                 }`}
               >
-                <Pen className="w-4 h-4" />
-                <span>Escribir</span>
+                <Library className="w-4 h-4" />
+                <span>Obras</span>
               </Link>
+
+              {/* Escribir solo tiene sentido con sesión: sin ella, el formulario
+                  no puede enviar nada porque la API exige token. Mostrarlo a un
+                  visitante es invitarlo a un callejón sin salida. */}
+              {isLoggedIn && (
+                <Link
+                  to="/write"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                    isActive("/write")
+                      ? "bg-purple-500/20 text-purple-300"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  }`}
+                >
+                  <Pen className="w-4 h-4" />
+                  <span>Escribir</span>
+                </Link>
+              )}
             </nav>
 
             <div className="flex items-center gap-2">
@@ -132,8 +149,12 @@ export function RootLayout() {
               <h3 className="font-semibold text-white mb-4">Explorar</h3>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li><Link to="/" className="hover:text-purple-400 transition-colors">Inicio</Link></li>
+                <li><Link to="/all-reviews" className="hover:text-purple-400 transition-colors">Todas las reseñas</Link></li>
+                <li><Link to="/media" className="hover:text-purple-400 transition-colors">Obras</Link></li>
                 <li><Link to="/hashtags" className="hover:text-purple-400 transition-colors">Hashtags</Link></li>
-                <li><Link to="/write" className="hover:text-purple-400 transition-colors">Escribir Reseña</Link></li>
+                {isLoggedIn && (
+                  <li><Link to="/write" className="hover:text-purple-400 transition-colors">Escribir Reseña</Link></li>
+                )}
               </ul>
             </div>
 

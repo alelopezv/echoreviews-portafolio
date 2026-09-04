@@ -9,6 +9,7 @@ import { NotFoundPage } from "./components/NotFoundPage";
 import { ProfilePage } from "./components/ProfilePage";
 import { AllReviewsPage } from "./components/AllReviewsPage";
 import { MediaPage } from "./components/MediaPage";
+import { RequireAuth } from "./components/RequireAuth";
 
 export const router = createBrowserRouter([
   {
@@ -16,14 +17,16 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: "profile", element: <ProfilePage /> },
+      { path: "profile", element: <RequireAuth><ProfilePage /></RequireAuth> },
       { path: "review/:id", element: <ReviewDetailPage /> },
-      { path: "write", element: <WritePage /> },
+      // Escribir y el perfil exigen sesión: sin token la API responde 401
+      // y el usuario quedaría frente a una página que no puede usar.
+      { path: "write", element: <RequireAuth><WritePage /></RequireAuth> },
       { path: "hashtag/:tag", element: <HashtagPage /> },
       { path: "hashtags", element: <AllHashtagsPage /> },
       { path: "all-reviews", element: <AllReviewsPage /> },
-      { path: "*", element: <NotFoundPage /> },
       { path: "media", element: <MediaPage /> },
+      { path: "*", element: <NotFoundPage /> },
     ],
   },
 ]);
