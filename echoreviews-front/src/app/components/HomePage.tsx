@@ -123,9 +123,9 @@ export function HomePage() {
               <article className="rounded-2xl overflow-hidden bg-slate-800/30 border border-slate-700/50 hover:border-purple-500/50 transition-all hover:shadow-xl hover:shadow-purple-500/10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Image */}
-                  <div className="lg:col-span-1 aspect-[4/3] lg:aspect-auto overflow-hidden">
+                  <div className="lg:col-span-1 aspect-[4/3] overflow-hidden">
                     <img
-                      src={review.media_image || "https://via.placeholder.com/400x300"}
+                      src={review.media?.image || "https://via.placeholder.com/400x300"}
                       alt={review.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -148,8 +148,8 @@ export function HomePage() {
                       <span className="text-slate-600">•</span>
                       <span className="text-sm text-slate-400">~5 min de lectura</span>
                       <span className="text-slate-600">•</span>
-                      <span className={`text-sm font-medium capitalize ${getCategoryColor(review.media_type)}`}>
-                        {review.media_type}
+                      <span className={`text-sm font-medium capitalize ${getCategoryColor(review.media?.type)}`}>
+                        {review.media?.type}
                       </span>
                     </div>
 

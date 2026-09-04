@@ -1,0 +1,66 @@
+name: CI
+
+# Corre en cada push a cualquier rama y en cada pull request. La gracia es
+# enterarse de que algo se rompió antes de que alguien más clone el proyecto,
+# no después.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  backend:
+    name: Tests del backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: echoreviews-back
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          # mysqlclient necesita compilarse contra las cabeceras de MySQL.
+          sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Comprobar que no falten migraciones
+        # Falla si algún modelo cambió y nadie generó la migración. Es el error
+        # que dejó la aplicación devolviendo 500 por una columna inexistente.
+        run: python manage.py makemigrations --check --dry-run --settings=echoreviews.test_settings
+
+      - name: Tests
+        run: pytest
+
+  frontend:
+    name: Tipos y build del frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: echoreviews-front
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: echoreviews-front/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar tipos
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build

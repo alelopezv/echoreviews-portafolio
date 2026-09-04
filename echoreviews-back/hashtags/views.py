@@ -8,16 +8,6 @@ from .serializers import HashtagSerializer
 
 
 # Ver todos los hashtags (público)
-class HashtagListView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def get(self, request):
-        hashtags = Hashtag.objects.all()
-        serializer = HashtagSerializer(hashtags, many=True)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 # Crear hashtag (admin)
 class CreateHashtagView(APIView):
     permission_classes = [permissions.IsAdminUser]

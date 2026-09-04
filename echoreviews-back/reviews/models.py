@@ -37,11 +37,18 @@ class Review(models.Model):
     hashtags = models.ManyToManyField(Hashtag, blank=True)
 
     # Moderación
+    # Usa STATUS_CHOICES en vez de una lista escrita a mano acá: la de arriba
+    # ya incluye "rejected", y tenerla duplicada hacía que el estado de rechazo
+    # existiera en la constante pero no en el campo, o sea, no existiera.
     status = models.CharField(
         max_length=10,
-        choices=[("pending", "Pendiente"), ("approved", "Aprobado")],
-        default="pending"  # 🔥 importante
+        choices=STATUS_CHOICES,
+        default="pending"
     )
+
+    # Motivo del rechazo. Rechazar sin explicar no le sirve de nada al autor:
+    # no sabe qué corregir para volver a enviar la reseña.
+    rejection_reason = models.TextField(blank=True, default="")
 
     approved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
