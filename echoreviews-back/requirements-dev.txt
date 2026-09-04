@@ -1,0 +1,5 @@
+# Dependencias que solo hacen falta para desarrollar y para la CI.
+# Se separan de requirements.txt para que la imagen de producción no cargue
+# con el framework de pruebas.
+pytest==9.1.1
+pytest-django==4.14.0

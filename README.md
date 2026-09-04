@@ -1,5 +1,7 @@
 # ⚙️ EchoReviews
 
+[![CI](https://github.com/alelopezv/echoreviews-portafolio/actions/workflows/ci.yml/badge.svg)](https://github.com/alelopezv/echoreviews-portafolio/actions/workflows/ci.yml)
+
 EchoReviews es una plataforma de crítica cultural donde los usuarios escriben y exploran
 reseñas de anime, música y videojuegos, con un flujo de moderación para el contenido
 que proponen.
@@ -166,16 +168,47 @@ echoreviews-portafolio/
 
 ---
 
+## 🧪 Tests y verificaciones
+
+Cada push ejecuta la CI: tests del backend, comprobación de migraciones
+pendientes, verificación de tipos y build del frontend.
+
+Para correrlo en local:
+
+```bash
+# Backend — 9 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+cd echoreviews-back
+pip install -r requirements-dev.txt
+pytest
+
+# ¿Falta alguna migración por generar?
+python manage.py makemigrations --check --dry-run --settings=echoreviews.test_settings
+
+# Frontend
+cd ../echoreviews-front
+npm run typecheck
+npm run build
+```
+
+Los tests cubren las reglas que sostienen el proyecto, no el porcentaje de
+líneas: quién puede publicar, que el estado de moderación lo decida el backend
+y no el cliente, que la API devuelva siempre la misma forma, que una obra nueva
+llegue completa, que aprobar una propuesta reenganche todas sus reseñas, y que
+moderar no permita reescribir el texto ajeno.
+
+---
+
 ## ⚠️ Estado del proyecto
 
 Proyecto de portafolio, en desarrollo activo. Trabajo pendiente conocido:
 
-- No hay tests automatizados ni integración continua todavía.
-- Falta configuración de TypeScript (`tsconfig.json`), así que los tipos no se
-  verifican en build.
+- Quedan `any` explícitos en el frontend: la configuración de TypeScript está
+  en modo estricto, pero varios componentes todavía no declaran sus tipos.
 - Los valores de recorte de portada se guardan en la base de datos pero el
   frontend aún no los aplica al mostrar las imágenes.
 - No existe endpoint de registro de usuarios: las cuentas se crean desde el admin.
+- Las reseñas de una obra se filtran en el cliente; con más contenido eso
+  correspondería a un parámetro del endpoint.
 
 ---
 
