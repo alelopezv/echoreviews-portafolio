@@ -123,7 +123,7 @@ export function HomePage() {
               <article className="rounded-2xl overflow-hidden bg-slate-800/30 border border-slate-700/50 hover:border-purple-500/50 transition-all hover:shadow-xl hover:shadow-purple-500/10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Image */}
-                  <div className="lg:col-span-1 aspect-[4/3] lg:aspect-auto overflow-hidden">
+                  <div className="lg:col-span-1 aspect-[4/3] overflow-hidden">
                     <img
                       src={review.media?.image || "https://via.placeholder.com/400x300"}
                       alt={review.title}

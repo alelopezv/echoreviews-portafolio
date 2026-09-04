@@ -72,8 +72,6 @@ export function MediaPage() {
 
         {filteredMedia.map((media) => {
 
-          console.log("MEDIA:", media);
-
           return (
             <Link
               key={media.id}
@@ -82,14 +80,12 @@ export function MediaPage() {
             >
             <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 hover:border-purple-500 transition-all">
 
-              <div className="aspect-[2/3] overflow-hidden">
+              <div className={`overflow-hidden ${
+                media.type === "music" ? "aspect-square" : "aspect-[2/3]"
+              }`}>
 
                 <img
-                  src={
-                    media.image
-                      ? `http://127.0.0.1:8000${media.image}`
-                      : "/no-poster.png"
-                  }
+                  src={media.image || "/no-poster.png"}
                   alt={media.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />

@@ -1,4 +1,5 @@
 import { Award } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ReviewCard } from "./ReviewCard";
 import api from "../../services/api";
@@ -58,7 +59,9 @@ export function ProfilePage() {
         <div className="space-y-4">
           {reviews.map((review) => (
             <div key={review.id}>
-              <ReviewCard review={review} />
+              <Link to={`/review/${review.id}`} className="block">
+                <ReviewCard review={review} />
+              </Link>
 
               {review.status === "rejected" && (
                 <div className="mt-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30">
