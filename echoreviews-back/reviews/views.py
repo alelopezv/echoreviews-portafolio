@@ -177,7 +177,10 @@ class RejectReviewView(APIView):
 
 
 class ReviewDetailView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    # Leer es público, escribir no. Antes toda la vista exigía sesión, así que
+    # el listado /api/reviews/ mostraba las reseñas a cualquiera pero al entrar
+    # a una salía 401 y la página quedaba en "Cargando reseña…" para siempre.
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_object(self, pk):
         try:
@@ -189,6 +192,15 @@ class ReviewDetailView(APIView):
         review = self.get_object(pk)
         if not review:
             return Response({"detail": "No encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Una reseña que todavía no se aprueba solo la ve su autor o un admin.
+        # Sin esto, el detalle sería una puerta trasera para leer lo que el
+        # listado público filtra.
+        if review.status != "approved":
+            usuario = request.user
+            es_suya = usuario.is_authenticated and review.user_id == usuario.id
+            if not es_suya and not usuario.is_staff:
+                return Response({"detail": "No encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = ReviewSerializer(review, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)

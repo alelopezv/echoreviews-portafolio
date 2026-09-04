@@ -78,6 +78,83 @@ class MediaDetailView(APIView):
         return Response({"message": "Media eliminado"}, status=status.HTTP_204_NO_CONTENT)
 
 
+def aprobar_sugerencia(suggestion):
+    """Convierte una propuesta en obra del catálogo y reengancha sus reseñas.
+
+    Vive fuera de la vista a propósito: el admin de Django necesita ejecutar
+    exactamente esta lógica. Cuando solo existía dentro de la vista, cambiar
+    el estado a "approved" desde el admin escribía el campo y nada más — no
+    se creaba la Media ni se reenganchaban las reseñas, así que la aprobación
+    parecía funcionar y en realidad no hacía nada.
+
+    Devuelve (media, error). Si error no es None, no se modificó nada.
+    """
+    if suggestion.approved_media:
+        return None, "Ya vinculada a un media"
+
+    if suggestion.status == "approved":
+        return None, "Ya aprobada"
+
+    if suggestion.status == "rejected":
+        return None, "No se puede aprobar una sugerencia rechazada"
+
+    # ✅ NORMALIZAR TÍTULO (strip antes de todo)
+    title = suggestion.title.strip()
+
+    existing_media = Media.objects.filter(title__iexact=title).first()
+
+    if existing_media:
+        media = existing_media
+    else:
+        # La obra oficial se arma con ESTA propuesta: es la que el admin
+        # eligió, con su portada y su descripción.
+        media = Media.objects.create(
+            title=title,
+            type=suggestion.type,
+            description=suggestion.description,
+            status="approved",
+            image=suggestion.image,
+            crop_x=suggestion.crop_x,
+            crop_y=suggestion.crop_y,
+            crop_width=suggestion.crop_width,
+            crop_height=suggestion.crop_height,
+        )
+
+    # Propuestas que competían por la misma obra: la elegida y las demás.
+    # Todas se resuelven de una vez, porque después de crear la Media ya
+    # no tiene sentido dejarlas esperando: la obra existe.
+    #
+    # Los IDs se materializan en una lista AHORA, antes de cambiarles el
+    # estado. Un queryset de Django es perezoso: si más abajo filtráramos
+    # por él después de marcarlas como aprobadas, la consulta se volvería a
+    # ejecutar con `status="pending"` y no devolvería ninguna.
+    hermanas_ids = list(
+        MediaSuggestion.objects
+        .filter(title__iexact=title, status="pending")
+        .values_list("id", flat=True)
+    )
+
+    for hermana in MediaSuggestion.objects.filter(id__in=hermanas_ids):
+        # Se marcan como aprobadas, no rechazadas: sus autores no hicieron
+        # nada mal. Simplemente no se eligió su portada, y su reseña se
+        # publica igual.
+        hermana.status = "approved"
+        hermana.approved_media = media
+        hermana.approved_at = timezone.now()
+        hermana.save()
+
+    # 🔗 Reenganchar las reseñas de TODAS las propuestas, no solo de la
+    # elegida. Si no, las de Bruno quedarían huérfanas para siempre.
+    reviews = Review.objects.filter(media_suggestion_id__in=hermanas_ids)
+
+    for review in reviews:
+        review.media = media
+        review.media_suggestion = None  # 🔥 limpiar el andamio
+        review.save()
+
+    return media, None
+
+
 # ✅ Aprobar sugerencia de media (admin)
 class ApproveMediaSuggestionView(APIView):
     permission_classes = [permissions.IsAdminUser]
@@ -87,89 +164,18 @@ class ApproveMediaSuggestionView(APIView):
             suggestion = MediaSuggestion.objects.get(pk=pk)
         except MediaSuggestion.DoesNotExist:
             return Response({"detail": "No encontrada"}, status=status.HTTP_404_NOT_FOUND)
-        
-        # ❗ NUEVO (punto 3)
-        if suggestion.approved_media:
-            return Response(
-                {"detail": "Ya vinculada a un media"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # ❗ Evitar doble aprobación
-        if suggestion.status == "approved":
-            return Response(
-                {"detail": "Ya aprobada"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
-        # ❗ NUEVO: evitar aprobar si ya fue rechazada
-        if suggestion.status == "rejected":
-            return Response(
-                {"detail": "No se puede aprobar una sugerencia rechazada"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        media, error = aprobar_sugerencia(suggestion)
 
-        # ✅ NORMALIZAR TÍTULO (strip antes de todo)
-        title = suggestion.title.strip()
-
-        existing_media = Media.objects.filter(title__iexact=title).first()
-
-        if existing_media:
-            media = existing_media
-        else:
-            # La obra oficial se arma con ESTA propuesta: es la que el admin
-            # eligió, con su portada y su descripción.
-            media = Media.objects.create(
-                title=title,
-                type=suggestion.type,
-                description=suggestion.description,
-                status="approved",
-                image=suggestion.image,
-                crop_x=suggestion.crop_x,
-                crop_y=suggestion.crop_y,
-                crop_width=suggestion.crop_width,
-                crop_height=suggestion.crop_height,
-            )
-
-        # Propuestas que competían por la misma obra: la elegida y las demás.
-        # Todas se resuelven de una vez, porque después de crear la Media ya
-        # no tiene sentido dejarlas esperando: la obra existe.
-        #
-        # Los IDs se materializan en una lista AHORA, antes de cambiarles el
-        # estado. Un queryset de Django es perezoso: si más abajo filtráramos
-        # por él después de marcarlas como aprobadas, la consulta se volvería a
-        # ejecutar con `status="pending"` y no devolvería ninguna.
-        hermanas_ids = list(
-            MediaSuggestion.objects
-            .filter(title__iexact=title, status="pending")
-            .values_list("id", flat=True)
-        )
-
-        for hermana in MediaSuggestion.objects.filter(id__in=hermanas_ids):
-            # Se marcan como aprobadas, no rechazadas: sus autores no hicieron
-            # nada mal. Simplemente no se eligió su portada, y su reseña se
-            # publica igual.
-            hermana.status = "approved"
-            hermana.approved_media = media
-            hermana.approved_at = timezone.now()
-            hermana.save()
-
-        # 🔗 Reenganchar las reseñas de TODAS las propuestas, no solo de la
-        # elegida. Si no, las de Bruno quedarían huérfanas para siempre.
-        reviews = Review.objects.filter(media_suggestion_id__in=hermanas_ids)
-
-        for review in reviews:
-            review.media = media
-            review.media_suggestion = None  # 🔥 limpiar el andamio
-            review.save()
+        if error:
+            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({
             "message": "Sugerencia aprobada",
             "media_id": media.id
         }, status=status.HTTP_200_OK)
-        
-        
-        
+
+
 class CreateMediaSuggestionView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
