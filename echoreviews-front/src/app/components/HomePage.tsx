@@ -148,8 +148,8 @@ export function HomePage() {
                       <span className="text-slate-600">•</span>
                       <span className="text-sm text-slate-400">~5 min de lectura</span>
                       <span className="text-slate-600">•</span>
-                      <span className={`text-sm font-medium capitalize ${getCategoryColor(review.media_type)}`}>
-                        {review.media_type}
+                      <span className={`text-sm font-medium capitalize ${getCategoryColor(review.media?.type)}`}>
+                        {review.media?.type}
                       </span>
                     </div>
 
