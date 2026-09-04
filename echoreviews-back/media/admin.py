@@ -15,11 +15,28 @@ class MediaAdmin(admin.ModelAdmin):
 class MediaSuggestionAdmin(admin.ModelAdmin):
     # Ordenado por título y luego por fecha: así las propuestas que compiten
     # por la misma obra quedan juntas y se pueden comparar antes de elegir.
-    list_display = ("id", "title", "type", "created_by", "status", "created_at")
+    list_display = ("id", "title", "type", "created_by", "status", "obra_creada", "created_at")
     list_filter = ("status", "type", "created_at")
     search_fields = ("title",)
-    ordering = ("title", "created_at")
     readonly_fields = ("created_by", "created_at", "approved_at", "approved_media")
+
+    # Las pendientes primero, y dentro de cada estado agrupadas por título para
+    # comparar las que compiten por la misma obra.
+    #
+    # Las propuestas ya resueltas NO se borran: son el registro de quién propuso
+    # cada obra y cuándo. Pero tampoco deben estorbar, así que quedan al final.
+    ordering = ("-status", "title", "created_at")
+
+    @admin.display(description="Obra en el catálogo", ordering="approved_media")
+    def obra_creada(self, obj):
+        """Deja ver de un vistazo si la propuesta realmente llegó al catálogo.
+
+        Sirve para detectar el estado inconsistente que dejaba el desplegable
+        viejo: marcada como aprobada pero sin obra detrás.
+        """
+        if obj.approved_media:
+            return f"✔ {obj.approved_media.title}"
+        return "— pendiente" if obj.status == "pending" else "⚠ sin obra"
 
     # OJO: aquí NO va list_editable = ("status",).
     #

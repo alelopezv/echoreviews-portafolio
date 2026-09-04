@@ -9,6 +9,7 @@ import { NotFoundPage } from "./components/NotFoundPage";
 import { ProfilePage } from "./components/ProfilePage";
 import { AllReviewsPage } from "./components/AllReviewsPage";
 import { MediaPage } from "./components/MediaPage";
+import { MediaDetailPage } from "./components/MediaDetailPage";
 import { RequireAuth } from "./components/RequireAuth";
 
 export const router = createBrowserRouter([
@@ -26,6 +27,9 @@ export const router = createBrowserRouter([
       { path: "hashtags", element: <AllHashtagsPage /> },
       { path: "all-reviews", element: <AllReviewsPage /> },
       { path: "media", element: <MediaPage /> },
+      // La ruta con :id va DESPUÉS de la fija. React Router evalúa en
+      // orden, y ":id" también casaría con la palabra "media" suelta.
+      { path: "media/:id", element: <MediaDetailPage /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },
