@@ -176,7 +176,7 @@ pendientes, verificación de tipos y build del frontend.
 Para correrlo en local:
 
 ```bash
-# Backend — 9 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+# Backend — 15 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
 cd echoreviews-back
 pip install -r requirements-dev.txt
 pytest
@@ -193,8 +193,9 @@ npm run build
 Los tests cubren las reglas que sostienen el proyecto, no el porcentaje de
 líneas: quién puede publicar, que el estado de moderación lo decida el backend
 y no el cliente, que la API devuelva siempre la misma forma, que una obra nueva
-llegue completa, que aprobar una propuesta reenganche todas sus reseñas, y que
-moderar no permita reescribir el texto ajeno.
+llegue completa, que aprobar una propuesta reenganche todas sus reseñas, que
+moderar no permita reescribir el texto ajeno, y que aprobar un hashtag lo
+publique de verdad y etiquete las reseñas que lo pidieron.
 
 ---
 

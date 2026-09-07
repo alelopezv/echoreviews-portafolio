@@ -45,6 +45,14 @@ export interface CatalogMedia {
   status: ModerationStatus;
 }
 
+/** El catálogo de etiquetas: /api/hashtags/ (solo devuelve las aprobadas). */
+export interface Hashtag {
+  id: number;
+  name: string;
+  created_at: string;
+  status: ModerationStatus;
+}
+
 /** El usuario autenticado: /api/users/me/ */
 export interface User {
   id: number;
