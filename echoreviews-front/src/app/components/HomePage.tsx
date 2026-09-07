@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import { Pen, Hash, TrendingUp, Clock, Star } from "lucide-react";
-import { reviewsData } from "../data/mockData";
 import { useEffect, useState } from "react";
 import api from "../../services/api.ts";
+import { Media, Review } from "../../types.ts";
 
 export function HomePage() {
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
     api.get("reviews/")
@@ -26,14 +26,13 @@ export function HomePage() {
     }).format(date);
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors = {
+  const getCategoryColor = (category?: Media["type"]) => {
+    const colors: Record<Media["type"], string> = {
       anime: "text-purple-400",
       music: "text-pink-400",
-      games: "text-blue-400",
-      film: "text-green-400"
+      game: "text-blue-400",
     };
-    return colors[category as keyof typeof colors] || "text-gray-400";
+    return category ? colors[category] : "text-gray-400";
   };
 
   return (
@@ -80,7 +79,7 @@ export function HomePage() {
             <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
               <Pen className="w-5 h-5 text-purple-400" />
             </div>
-            <div className="text-3xl font-bold text-white">{reviewsData.length}</div>
+            <div className="text-3xl font-bold text-white">{reviews.length}</div>
           </div>
           <p className="text-slate-400">Reseñas publicadas</p>
         </div>
@@ -137,11 +136,11 @@ export function HomePage() {
                     <div className="flex flex-wrap items-center gap-3 mb-4">
                       <div className="flex items-center gap-2">
                         <img
-                          src={`https://ui-avatars.com/api/?name=${review.user}&background=7c3aed&color=fff`}
-                          alt={review.user}
+                          src={`https://ui-avatars.com/api/?name=${review.full_name}&background=7c3aed&color=fff`}
+                          alt={review.full_name}
                           className="w-8 h-8 rounded-full object-cover"
                         />
-                        <span className="text-sm text-slate-300">{review.user}</span>
+                        <span className="text-sm text-slate-300">{review.full_name}</span>
                       </div>
                       <span className="text-slate-600">•</span>
                       <span className="text-sm text-slate-400">{formatDate(review.created_at)}</span>

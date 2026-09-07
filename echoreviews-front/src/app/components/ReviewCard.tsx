@@ -1,5 +1,7 @@
+import type { Review } from "../../types";
+
 interface ReviewCardProps {
-  review: any;
+  review: Review;
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {

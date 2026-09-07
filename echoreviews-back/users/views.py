@@ -14,4 +14,5 @@ def me(request):
         "first_name": user.first_name,
         "last_name": user.last_name,
         "full_name": f"{user.first_name} {user.last_name}".strip() or user.username,
+        "date_joined": user.date_joined,
     })

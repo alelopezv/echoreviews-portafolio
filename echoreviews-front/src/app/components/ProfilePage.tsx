@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ReviewCard } from "./ReviewCard";
 import api from "../../services/api";
+import type { Review, User } from "../../types";
 
 export function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -25,9 +26,6 @@ export function ProfilePage() {
 
     fetchData();
   }, []);
-  const stats = {
-    totalReviews: reviews.length,
-  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -38,7 +36,11 @@ export function ProfilePage() {
         <h1 className="text-3xl font-bold text-white mb-2">
           {user?.full_name || user?.username}
         </h1>
-        <p className="text-slate-400">Miembro desde Marzo 2026</p>
+        <p className="text-slate-400">
+          {user && `Miembro desde ${new Intl.DateTimeFormat("es-ES", {
+            month: "long", year: "numeric",
+          }).format(new Date(user.date_joined))}`}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -47,7 +49,7 @@ export function ProfilePage() {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
               <Award className="w-5 h-5 text-purple-400" />
             </div>
-            <div className="text-3xl font-bold text-white">{stats.totalReviews}</div>
+            <div className="text-3xl font-bold text-white">{reviews.length}</div>
           </div>
           <p className="text-slate-400">Reseñas Totales</p>
         </div>

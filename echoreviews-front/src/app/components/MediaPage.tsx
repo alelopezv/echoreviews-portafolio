@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
-
-interface Media {
-  id: number;
-  title: string;
-  type: string;
-  description?: string;
-  image?: string;
-}
+import type { CatalogMedia } from "../../types";
 
 export function MediaPage() {
-  const [mediaList, setMediaList] = useState<Media[]>([]);
+  const [mediaList, setMediaList] = useState<CatalogMedia[]>([]);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {

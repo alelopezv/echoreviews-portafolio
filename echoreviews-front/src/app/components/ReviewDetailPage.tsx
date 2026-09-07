@@ -2,10 +2,11 @@ import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Calendar, Clock, Star, Hash, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import type { Media, Review } from "../../types"
 
 export function ReviewDetailPage() {
   const { id } = useParams();
-  const [review, setReview] = useState<any>(null);
+  const [review, setReview] = useState<Review | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -32,14 +33,13 @@ export function ReviewDetailPage() {
     }).format(date);
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors = {
+  const getCategoryColor = (category?: Media["type"]) => {
+    const colors: Record<Media["type"], string> = {
       anime: "bg-purple-500/20 text-purple-300 border-purple-500/30",
       music: "bg-pink-500/20 text-pink-300 border-pink-500/30",
-      games: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-      film: "bg-green-500/20 text-green-300 border-green-500/30"
+      game: "bg-blue-500/20 text-blue-300 border-blue-500/30",
     };
-    return colors[category as keyof typeof colors] || "bg-gray-500/20 text-gray-300 border-gray-500/30";
+    return category ? colors[category] : "bg-gray-500/20 text-gray-300 border-gray-500/30";
   };
 
   return (
@@ -89,12 +89,13 @@ export function ReviewDetailPage() {
         <div className="flex flex-wrap items-center justify-between gap-4 pb-8 mb-8 border-b border-slate-700/50">
           <div className="flex items-center gap-4">
             <img
-              src="https://via.placeholder.com/100"
+              src={`https://ui-avatars.com/api/?name=${review.full_name}&background=7c3aed&color=fff`}
+              alt={review.full_name}
               className="w-12 h-12 rounded-full object-cover"
             />
             <div>
-              <div className="font-semibold text-white">{review.full_name}</div> {/* ALGO TEMPORAL review.author.name */}
-              {/* <div className="text-sm text-slate-400">@{review.author.username}</div> */}
+              <div className="font-semibold text-white">{review.full_name}</div>
+              <div className="text-sm text-slate-400">@{review.username}</div>
             </div>
           </div>
 
@@ -105,7 +106,7 @@ export function ReviewDetailPage() {
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              <span>~5 min</span> {/* ALGO TEMPORAL review.readTime */}
+              <span>~{Math.max(1, Math.ceil(review.content.split(/\s+/).length / 200))} min</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/20">
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
@@ -160,7 +161,6 @@ export function ReviewDetailPage() {
               <div className="flex items-center gap-2 mb-2">
                 <User className="w-4 h-4 text-purple-400" />
                 <span className="font-semibold text-white">{review.full_name}</span>
-                {/* <span className="text-slate-500">@{review.author.username}</span> */}
               </div>
               <p className="text-slate-400 text-sm">
                 Crítico cultural especializado en arte audiovisual de culto.
