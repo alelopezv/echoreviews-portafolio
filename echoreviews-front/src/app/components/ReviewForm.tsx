@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import api from "../../services/api";
 import { MediaPosterEditor } from "./MediaPosterEditor";
+import { CatalogMedia } from "../../types";
+import axios from "axios";
+import { Area } from "react-easy-crop";
 
 interface ReviewFormProps {
   onClose: () => void;
@@ -12,13 +15,13 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
   const [comment, setComment] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
-  const [mediaList, setMediaList] = useState<any[]>([]);
+  const [mediaList, setMediaList] = useState<CatalogMedia[]>([]);
   const [mediaListError, setMediaListError] = useState(false);
   const [mediaId, setMediaId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [mediaTitle, setMediaTitle] = useState("");
   const [mediaType, setMediaType] = useState("anime");
-  const [cropData, setCropData] = useState<any>(null);
+  const [cropData, setCropData] = useState<Area | null>(null);
   const [mediaDescription, setMediaDescription] = useState("");
 
   useEffect(() => {
@@ -69,10 +72,29 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
 
       alert("Reseña enviada correctamente");
       onClose();
-    } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.detail || "Error al enviar la reseña");
-    }
+    } catch (err) {
+        console.error(err);
+
+        let mensaje = "Error al enviar la reseña";
+
+        if (axios.isAxiosError(err) && err.response?.data) {
+          const data = err.response.data;
+
+          if (typeof data.detail === "string") {
+            mensaje = data.detail;
+          } else {
+            // El backend responde {"image": "Requerido para proponer una obra
+            // nueva."} — sin clave "detail". Sin esto el usuario solo veía
+            // "Error al enviar la reseña" y no sabía qué campo le faltaba.
+            const campos = Object.entries(data)
+              .map(([campo, texto]) => `${campo}: ${texto}`)
+              .join("\n");
+            if (campos) mensaje = campos;
+          }
+        }
+
+        alert(mensaje);
+      }
   };
 
   return (

@@ -1,23 +1,17 @@
 import { useState } from "react";
 import Cropper from "react-easy-crop";
 import { Check, CropIcon } from "lucide-react";
-
-interface CropArea {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+import type { Area } from "react-easy-crop";
 
 interface Props {
   image: string;
-  onCropConfirm: (area: CropArea) => void;
+  onCropConfirm: (area: Area) => void;
 }
 
 export function MediaPosterEditor({ image, onCropConfirm }: Props) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [pendingArea, setPendingArea] = useState<CropArea | null>(null);
+  const [pendingArea, setPendingArea] = useState<Area | null>(null);
   const [confirmed, setConfirmed] = useState(false);
 
   const handleConfirm = () => {

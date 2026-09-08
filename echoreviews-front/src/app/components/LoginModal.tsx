@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 interface Props {
   onClose: () => void;
@@ -31,9 +32,9 @@ export function LoginModal({ onClose, onSuccess }: Props) {
       onClose();
       // Luego navegar
       navigate("/profile");
-    } catch (err: any) {
+    } catch (err) {
       const msg =
-        err.response?.status === 401
+        axios.isAxiosError(err) && err.response?.status === 401
           ? "Usuario o contraseña incorrectos"
           : "Error al conectar con el servidor";
       setError(msg);

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Star } from "lucide-react";
 import api from "../../services/api";
+import type { CatalogMedia, Review } from "../../types";
 
 export function MediaDetailPage() {
   // useParams lee el trozo variable de la URL. Como la ruta se declara
@@ -9,8 +10,8 @@ export function MediaDetailPage() {
   // Ojo: siempre es texto, nunca número — viene de la barra de direcciones.
   const { id } = useParams();
 
-  const [media, setMedia] = useState<any>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [media, setMedia] = useState<CatalogMedia | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
 
@@ -31,7 +32,7 @@ export function MediaDetailPage() {
         // Para un catálogo chico está bien; si algún día crecen las reseñas,
         // esto se resuelve en el backend con un ?media=<id>.
         setReviews(
-          reviewsRes.data.filter((r: any) => r.media?.title === mediaRes.data.title)
+          reviewsRes.data.filter((r: Review) => r.media?.title === mediaRes.data.title)
         );
       })
       .catch((err) => {
