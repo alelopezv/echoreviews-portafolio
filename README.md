@@ -123,13 +123,19 @@ La API usa **JSON Web Tokens**. Se envían en la cabecera `Authorization: Bearer
 - **Propuestas de contenido** — si un usuario reseña una obra que no está en el
   catálogo, se crea una `MediaSuggestion`. Al aprobarla, se genera la `Media`
   definitiva y las reseñas que quedaron colgando se reenlazan automáticamente.
-- **Hashtags** — normalizados en minúsculas para evitar duplicados.
+- **Hashtags** — normalizados en minúsculas para evitar duplicados. Un usuario
+  puede proponerlos al escribir una reseña; al aprobarlos, el hashtag se publica
+  y queda enganchado a las reseñas que lo pidieron. El catálogo de etiquetas lo
+  cura el admin: el autor escribe la reseña y no puede editarla nadie más, pero
+  las etiquetas sí son editoriales.
 
 ### Frontend
 - Sesión persistente con JWT y renovación automática del token al expirar.
 - Formulario de reseñas con selección de obra existente o propuesta de una nueva,
   incluyendo carga y recorte de la portada.
 - Feed de reseñas, catálogo de obras, navegación por hashtags y vista de perfil.
+- Las respuestas de la API están descritas en `src/types.ts`, un tipo por
+  endpoint. TypeScript corre en modo estricto y no queda ningún `any` explícito.
 
 ---
 
@@ -203,13 +209,15 @@ publique de verdad y etiquete las reseñas que lo pidieron.
 
 Proyecto de portafolio, en desarrollo activo. Trabajo pendiente conocido:
 
-- Quedan `any` explícitos en el frontend: la configuración de TypeScript está
-  en modo estricto, pero varios componentes todavía no declaran sus tipos.
 - Los valores de recorte de portada se guardan en la base de datos pero el
   frontend aún no los aplica al mostrar las imágenes.
 - No existe endpoint de registro de usuarios: las cuentas se crean desde el admin.
-- Las reseñas de una obra se filtran en el cliente; con más contenido eso
-  correspondería a un parámetro del endpoint.
+- Las reseñas de una obra y las de un hashtag se filtran en el cliente: se pide
+  el listado completo y se descarta lo que no corresponde. Con este volumen
+  alcanza; con más contenido serían parámetros del endpoint (`?media=`,
+  `?hashtag=`) en vez de más código en el navegador.
+- La paginación no está implementada: `/api/reviews/` devuelve todas las
+  reseñas aprobadas en una sola respuesta.
 
 ---
 
