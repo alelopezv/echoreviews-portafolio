@@ -92,9 +92,15 @@ La API usa **JSON Web Tokens**. Se envían en la cabecera `Authorization: Bearer
 
 | Método | Endpoint | Descripción |
 |---|---|---|
+| `POST` | `/api/users/register/` | Crear una cuenta. Devuelve los tokens, así que deja la sesión iniciada |
 | `POST` | `/api/token/` | Iniciar sesión y obtener el par de tokens |
 | `POST` | `/api/token/refresh/` | Renovar el token de acceso |
 | `GET` | `/api/users/me/` | Perfil del usuario autenticado |
+
+El registro solo acepta `username`, `email` y `password`: los permisos no son
+campos del formulario. Las contraseñas pasan por los validadores de Django, y
+el nombre de usuario se comprueba sin distinguir mayúsculas para que `Ana` y
+`ana` no puedan ser dos cuentas distintas.
 
 ---
 
@@ -182,7 +188,7 @@ pendientes, verificación de tipos y build del frontend.
 Para correrlo en local:
 
 ```bash
-# Backend — 15 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+# Backend — 24 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
 cd echoreviews-back
 pip install -r requirements-dev.txt
 pytest
@@ -200,8 +206,9 @@ Los tests cubren las reglas que sostienen el proyecto, no el porcentaje de
 líneas: quién puede publicar, que el estado de moderación lo decida el backend
 y no el cliente, que la API devuelva siempre la misma forma, que una obra nueva
 llegue completa, que aprobar una propuesta reenganche todas sus reseñas, que
-moderar no permita reescribir el texto ajeno, y que aprobar un hashtag lo
-publique de verdad y etiquete las reseñas que lo pidieron.
+moderar no permita reescribir el texto ajeno, que aprobar un hashtag lo
+publique de verdad y etiquete las reseñas que lo pidieron, y que nadie pueda
+darse de alta como administrador ni ocupar un nombre de usuario ya tomado.
 
 ---
 
@@ -211,7 +218,8 @@ Proyecto de portafolio, en desarrollo activo. Trabajo pendiente conocido:
 
 - Los valores de recorte de portada se guardan en la base de datos pero el
   frontend aún no los aplica al mostrar las imágenes.
-- No existe endpoint de registro de usuarios: las cuentas se crean desde el admin.
+- Los avisos del formulario de reseñas siguen siendo `alert()` del navegador,
+  que no se puede estilizar ni encaja con el resto de la interfaz.
 - Las reseñas de una obra y las de un hashtag se filtran en el cliente: se pide
   el listado completo y se descarta lo que no corresponde. Con este volumen
   alcanza; con más contenido serían parámetros del endpoint (`?media=`,
