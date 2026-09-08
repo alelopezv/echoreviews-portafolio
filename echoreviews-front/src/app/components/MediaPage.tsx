@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import api from "../../services/api";
 import type { CatalogMedia } from "../../types";
-import { claseDeAspecto } from "../../lib/media";
+import { claseDeAspecto, TIPOS_DE_OBRA } from "../../lib/media";
 
 export function MediaPage() {
   const [mediaList, setMediaList] = useState<CatalogMedia[]>([]);
-  const [filter, setFilter] = useState("all");
+
+  // El filtro vive en la URL y no en un useState, así /media?tipo=music es un
+  // enlace que se puede compartir, marcar como favorito y al que el botón
+  // "atrás" del navegador vuelve. Con el estado en memoria, filtrar no dejaba
+  // rastro: al recargar volvías a "Todos" y no había forma de enlazar a una
+  // categoría desde el pie de página.
+  const [params, setParams] = useSearchParams();
+  const filtro = params.get("tipo") ?? "todos";
 
   useEffect(() => {
     api.get("media/")
@@ -17,9 +24,9 @@ export function MediaPage() {
   }, []);
 
   const filteredMedia =
-    filter === "all"
+    filtro === "todos"
       ? mediaList
-      : mediaList.filter((m) => m.type === filter);
+      : mediaList.filter((m) => m.type === filtro);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
@@ -30,35 +37,28 @@ export function MediaPage() {
 
       {/* FILTROS */}
       <div className="flex flex-wrap gap-3 mb-8">
-
-        <button
-          onClick={() => setFilter("all")}
-          className="px-4 py-2 rounded-lg bg-slate-700 text-white"
-        >
-          Todos
-        </button>
-
-        <button
-          onClick={() => setFilter("anime")}
-          className="px-4 py-2 rounded-lg bg-purple-700 text-white"
-        >
-          Anime
-        </button>
-
-        <button
-          onClick={() => setFilter("music")}
-          className="px-4 py-2 rounded-lg bg-pink-700 text-white"
-        >
-          Música
-        </button>
-
-        <button
-          onClick={() => setFilter("game")}
-          className="px-4 py-2 rounded-lg bg-blue-700 text-white"
-        >
-          Videojuegos
-        </button>
-
+        {[{ valor: "todos", etiqueta: "Todos" }, ...TIPOS_DE_OBRA].map(
+          ({ valor, etiqueta }) => {
+            const activo = filtro === valor;
+            return (
+              <button
+                key={valor}
+                onClick={() =>
+                  // "todos" no se escribe en la URL: la ausencia del parámetro
+                  // ya significa "sin filtrar", y /media queda limpio.
+                  setParams(valor === "todos" ? {} : { tipo: valor })
+                }
+                className={`px-4 py-2 rounded-lg transition-colors border ${
+                  activo
+                    ? "bg-purple-600 text-white border-purple-400"
+                    : "bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500"
+                }`}
+              >
+                {etiqueta}
+              </button>
+            );
+          }
+        )}
       </div>
 
       {/* GRID DE POSTERS */}

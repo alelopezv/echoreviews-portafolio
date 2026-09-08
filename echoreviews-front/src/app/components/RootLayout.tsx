@@ -161,9 +161,15 @@ export function RootLayout() {
             <div>
               <h3 className="font-semibold text-white mb-4">Categorías</h3>
               <ul className="space-y-2 text-sm text-slate-400">
-                <li><Link to="/hashtag/anime" className="hover:text-purple-400 transition-colors">Anime</Link></li>
-                <li><Link to="/hashtag/music" className="hover:text-pink-400 transition-colors">Música</Link></li>
-                <li><Link to="/hashtag/games" className="hover:text-blue-400 transition-colors">Videojuegos</Link></li>
+                {/* Apuntan al catálogo filtrado por tipo de obra, no a
+                    hashtags. Antes iban a /hashtag/anime, /hashtag/music y
+                    /hashtag/games: etiquetas que solo existirían si alguien
+                    las hubiera propuesto, y "games" ni siquiera es un valor
+                    del modelo —es un resabio del vocabulario de la maqueta—,
+                    así que los tres enlaces llevaban a páginas vacías. */}
+                <li><Link to="/media?tipo=anime" className="hover:text-purple-400 transition-colors">Anime</Link></li>
+                <li><Link to="/media?tipo=music" className="hover:text-pink-400 transition-colors">Música</Link></li>
+                <li><Link to="/media?tipo=game" className="hover:text-blue-400 transition-colors">Videojuegos</Link></li>
               </ul>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { ArrowLeft, Calendar, Clock, Star, Hash, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import type { Media, Review } from "../../types"
+import { claseDeAspecto } from "../../lib/media";
 
 export function ReviewDetailPage() {
   const { id } = useParams();
@@ -55,14 +56,35 @@ export function ReviewDetailPage() {
         </Link>
       </div>
 
-      {/* Hero Image */}
+      {/* Portada.
+          Antes esto era un <div aspect-[21/9]> con la imagen en object-cover:
+          una portada vertical estirada a una banda panorámica, recortada a una
+          franja del medio y ampliada a 1200px de ancho. De ahí venía el
+          pixelado — la imagen se agrandaba muy por encima de su tamaño real.
+
+          Ahora la misma imagen hace dos trabajos: de fondo va desenfocada y
+          ampliada (donde el pixelado no importa porque no se distingue nada),
+          y encima va nítida, a su proporción real y sin pasarse de su tamaño.
+          Es el recurso que usan Letterboxd, Plex y compañía. */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="aspect-[21/9] rounded-2xl overflow-hidden">
-          <img
-            src={review.media?.image || "/no-poster.png"}
-            alt={review.title}
-            className="w-full h-full object-cover"
-          />
+        <div className="relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-800">
+          {review.media?.image && (
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-cover bg-center blur-2xl scale-110 opacity-40"
+              style={{ backgroundImage: `url(${review.media.image})` }}
+            />
+          )}
+
+          <div className="relative flex justify-center py-10">
+            <img
+              src={review.media?.image || "/no-poster.png"}
+              alt={review.media?.title ?? review.title}
+              className={`max-h-[420px] w-auto rounded-xl shadow-2xl shadow-black/50 ${claseDeAspecto(
+                review.media?.type
+              )} object-cover`}
+            />
+          </div>
         </div>
       </div>
 
