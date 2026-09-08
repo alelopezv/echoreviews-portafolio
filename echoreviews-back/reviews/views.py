@@ -4,6 +4,7 @@ from rest_framework import status, permissions  # ✅ quitado "request" que pisa
 from django.utils import timezone
 from .models import Review
 from media.models import Media, MediaSuggestion
+from media.imagenes import recortar_portada
 from hashtags.models import Hashtag, HashtagSuggestion
 from .serializers import ReviewSerializer, ReviewCreateSerializer
 
@@ -50,16 +51,26 @@ class CreateReviewView(APIView):
                 # portada y su descripción, y un admin decide cuál queda. Antes
                 # esto era imposible porque MediaSuggestion.title era único y el
                 # segundo en proponer recibía un IntegrityError.
+                # El recorte se aplica al archivo acá, una sola vez, y los
+                # cuatro números quedan como registro de lo que se cortó.
+                # Sin recorte confirmado valen 0 y la imagen se guarda entera.
+                recorte = (
+                    data.get("crop_x", 0),
+                    data.get("crop_y", 0),
+                    data.get("crop_width", 0),
+                    data.get("crop_height", 0),
+                )
+
                 media_suggestion = MediaSuggestion.objects.create(
                     title=media_title,
                     type=data["media_type"],
                     description=data["media_description"],
                     created_by=request.user,
-                    image=data["image"],
-                    crop_x=data.get("crop_x", 0),
-                    crop_y=data.get("crop_y", 0),
-                    crop_width=data.get("crop_width", 100),
-                    crop_height=data.get("crop_height", 150),
+                    image=recortar_portada(data["image"], *recorte),
+                    crop_x=recorte[0],
+                    crop_y=recorte[1],
+                    crop_width=recorte[2],
+                    crop_height=recorte[3],
                 )
                 data["media"] = None
 

@@ -27,10 +27,18 @@ class Media(models.Model):
     # Sin null ni blank: toda obra del catálogo tiene portada.
     image = models.ImageField(upload_to="media/")
 
+    # Rectángulo que se recortó de la imagen subida, en píxeles del archivo
+    # original. Es el registro de lo que se hizo, no una instrucción pendiente:
+    # el recorte se aplica al archivo en el momento de subirlo.
+    #
+    # Ancho y alto valen 0 cuando no se recortó nada. Antes valían 100 y 150,
+    # que parecen un recorte legítimo: cualquier obra publicada sin pasar por
+    # el editor tenía guardado un rectángulo de 100×150 px que nadie leía. En
+    # cuanto se empezara a leer, esas portadas se habrían cortado a una esquina.
     crop_x = models.IntegerField(default=0)
     crop_y = models.IntegerField(default=0)
-    crop_width = models.IntegerField(default=100)
-    crop_height = models.IntegerField(default=150)
+    crop_width = models.IntegerField(default=0)
+    crop_height = models.IntegerField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='approved')
@@ -58,10 +66,18 @@ class MediaSuggestion(models.Model):
     # Igual que en Media: quien propone una obra aporta su portada.
     image = models.ImageField(upload_to="media/")
 
+    # Rectángulo que se recortó de la imagen subida, en píxeles del archivo
+    # original. Es el registro de lo que se hizo, no una instrucción pendiente:
+    # el recorte se aplica al archivo en el momento de subirlo.
+    #
+    # Ancho y alto valen 0 cuando no se recortó nada. Antes valían 100 y 150,
+    # que parecen un recorte legítimo: cualquier obra publicada sin pasar por
+    # el editor tenía guardado un rectángulo de 100×150 px que nadie leía. En
+    # cuanto se empezara a leer, esas portadas se habrían cortado a una esquina.
     crop_x = models.IntegerField(default=0)
     crop_y = models.IntegerField(default=0)
-    crop_width = models.IntegerField(default=100)
-    crop_height = models.IntegerField(default=150)
+    crop_width = models.IntegerField(default=0)
+    crop_height = models.IntegerField(default=0)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     status = models.CharField(
         max_length=10,

@@ -129,6 +129,10 @@ el nombre de usuario se comprueba sin distinguir mayúsculas para que `Ana` y
 - **Propuestas de contenido** — si un usuario reseña una obra que no está en el
   catálogo, se crea una `MediaSuggestion`. Al aprobarla, se genera la `Media`
   definitiva y las reseñas que quedaron colgando se reenlazan automáticamente.
+- **Portadas** — el recorte que elige el usuario se aplica al archivo con
+  Pillow al subirlo, no al mostrarlo: la imagen sale bien encuadrada en todas
+  partes sin que ningún componente tenga que saber nada. De paso se reducen
+  las que superan los 1600 px, que ninguna vista necesita.
 - **Hashtags** — normalizados en minúsculas para evitar duplicados. Un usuario
   puede proponerlos al escribir una reseña; al aprobarlos, el hashtag se publica
   y queda enganchado a las reseñas que lo pidieron. El catálogo de etiquetas lo
@@ -188,7 +192,7 @@ pendientes, verificación de tipos y build del frontend.
 Para correrlo en local:
 
 ```bash
-# Backend — 24 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+# Backend — 34 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
 cd echoreviews-back
 pip install -r requirements-dev.txt
 pytest
@@ -208,7 +212,8 @@ y no el cliente, que la API devuelva siempre la misma forma, que una obra nueva
 llegue completa, que aprobar una propuesta reenganche todas sus reseñas, que
 moderar no permita reescribir el texto ajeno, que aprobar un hashtag lo
 publique de verdad y etiquete las reseñas que lo pidieron, y que nadie pueda
-darse de alta como administrador ni ocupar un nombre de usuario ya tomado.
+darse de alta como administrador ni ocupar un nombre de usuario ya tomado, y
+que un recorte inválido devuelva la portada intacta en vez de arruinarla.
 
 ---
 
@@ -216,8 +221,6 @@ darse de alta como administrador ni ocupar un nombre de usuario ya tomado.
 
 Proyecto de portafolio, en desarrollo activo. Trabajo pendiente conocido:
 
-- Los valores de recorte de portada se guardan en la base de datos pero el
-  frontend aún no los aplica al mostrar las imágenes.
 - Los avisos del formulario de reseñas siguen siendo `alert()` del navegador,
   que no se puede estilizar ni encaja con el resto de la interfaz.
 - Las reseñas de una obra y las de un hashtag se filtran en el cliente: se pide

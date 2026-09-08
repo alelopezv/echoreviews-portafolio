@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from reviews.models import Review
 from .models import Media, MediaSuggestion
+from .imagenes import recortar_portada
 from .serializers import MediaSerializer
 
 
@@ -219,16 +220,28 @@ class CreateMediaSuggestionView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # Mismo tratamiento que al crear una reseña con obra nueva: el recorte
+        # se aplica al archivo y los números quedan como registro. Cero
+        # significa que no se recortó, así que la imagen se guarda entera.
+        def entero(campo):
+            try:
+                return int(request.data.get(campo, 0) or 0)
+            except (TypeError, ValueError):
+                return 0
+
+        recorte = (entero("crop_x"), entero("crop_y"),
+                   entero("crop_width"), entero("crop_height"))
+
         suggestion = MediaSuggestion.objects.create(
             title=title,
             type=type_,
             description=description,
-            image=image,
+            image=recortar_portada(image, *recorte),
             created_by=request.user,
-            crop_x=request.data.get("crop_x", 0),
-            crop_y=request.data.get("crop_y", 0),
-            crop_width=request.data.get("crop_width", 100),
-            crop_height=request.data.get("crop_height", 150),
+            crop_x=recorte[0],
+            crop_y=recorte[1],
+            crop_width=recorte[2],
+            crop_height=recorte[3],
         )
 
         return Response({
