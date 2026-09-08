@@ -3,17 +3,24 @@ import { Pen, Hash, TrendingUp, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { ReviewListItem } from "./ReviewListItem";
+import { EstadoDeLista } from "./EstadoDeLista";
 import type { Review } from "../../types";
 
 export function HomePage() {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     api.get("reviews/")
       .then(res => {
         setReviews(res.data.results || res.data);
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        setError(true);
+      })
+      .finally(() => setCargando(false));
   }, []);
 
   const latestReviews = reviews.slice(0, 6);
@@ -23,6 +30,11 @@ export function HomePage() {
   // hashtags— que no cambiaban aunque la base estuviera vacía.
   const escritores = new Set(reviews.map((r) => r.username)).size;
   const hashtagsEnUso = new Set(reviews.flatMap((r) => r.hashtags ?? [])).size;
+
+  // Si la petición falló, `reviews` está vacío y las tres cifras darían cero.
+  // Un cero afirma que no hay reseñas, y eso no es lo que pasó: lo que pasó es
+  // que no sabemos cuántas hay.
+  const cifra = (n: number) => (error ? "—" : cargando ? "…" : n);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -68,7 +80,7 @@ export function HomePage() {
             <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
               <Pen className="w-5 h-5 text-purple-400" />
             </div>
-            <div className="text-3xl font-bold text-white">{reviews.length}</div>
+            <div className="text-3xl font-bold text-white">{cifra(reviews.length)}</div>
           </div>
           <p className="text-slate-400">Reseñas publicadas</p>
         </div>
@@ -78,7 +90,7 @@ export function HomePage() {
             <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-pink-400" />
             </div>
-            <div className="text-3xl font-bold text-white">{escritores}</div>
+            <div className="text-3xl font-bold text-white">{cifra(escritores)}</div>
           </div>
           <p className="text-slate-400">Escritores activos</p>
         </div>
@@ -88,7 +100,7 @@ export function HomePage() {
             <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
               <Hash className="w-5 h-5 text-blue-400" />
             </div>
-            <div className="text-3xl font-bold text-white">{hashtagsEnUso}</div>
+            <div className="text-3xl font-bold text-white">{cifra(hashtagsEnUso)}</div>
           </div>
           <p className="text-slate-400">Hashtags únicos</p>
         </div>
@@ -101,11 +113,18 @@ export function HomePage() {
           <h2 className="text-3xl font-bold text-white">Últimas Reseñas</h2>
         </div>
 
-        <div className="space-y-8">
-          {latestReviews.map((review) => (
-            <ReviewListItem key={review.id} review={review} />
-          ))}
-        </div>
+        <EstadoDeLista
+          cargando={cargando}
+          error={error}
+          vacio={reviews.length === 0}
+          mensajeVacio="Todavía no hay reseñas publicadas. Podrías escribir la primera."
+        >
+          <div className="space-y-8">
+            {latestReviews.map((review) => (
+              <ReviewListItem key={review.id} review={review} />
+            ))}
+          </div>
+        </EstadoDeLista>
 
         {/* View All Button */}
         <div className="text-center mt-12">

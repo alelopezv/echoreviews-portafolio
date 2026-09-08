@@ -2,12 +2,16 @@ import { Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ReviewCard } from "./ReviewCard";
+import { EstadoDeLista } from "./EstadoDeLista";
 import api from "../../services/api";
 import type { Review, User } from "../../types";
 
 export function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -17,10 +21,13 @@ export function ProfilePage() {
         ]);
 
         setUser(userRes.data);
-        setReviews(reviewsRes.data);
+        setReviews(reviewsRes.data.results || reviewsRes.data);
 
       } catch (err) {
         console.error(err);
+        setError(true);
+      } finally {
+        setCargando(false);
       }
     };
 
@@ -58,25 +65,32 @@ export function ProfilePage() {
       <div>
         <h2 className="text-2xl font-bold text-white mb-6">Actividad Reciente</h2>
 
-        <div className="space-y-4">
-          {reviews.map((review) => (
-            <div key={review.id}>
-              <Link to={`/review/${review.id}`} className="block">
-                <ReviewCard review={review} />
-              </Link>
+        <EstadoDeLista
+          cargando={cargando}
+          error={error}
+          vacio={reviews.length === 0}
+          mensajeVacio="Todavía no has escrito ninguna reseña."
+        >
+          <div className="space-y-4">
+            {reviews.map((review) => (
+              <div key={review.id}>
+                <Link to={`/review/${review.id}`} className="block">
+                  <ReviewCard review={review} />
+                </Link>
 
-              {review.status === "rejected" && (
-                <div className="mt-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30">
-                  <p className="text-sm font-semibold text-red-400 mb-1">Reseña rechazada</p>
-                  <p className="text-sm text-slate-300">{review.rejection_reason}</p>
-                  <p className="text-xs text-slate-500 mt-2">
-                    Corrígela y volverá a la cola de revisión.
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+                {review.status === "rejected" && (
+                  <div className="mt-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30">
+                    <p className="text-sm font-semibold text-red-400 mb-1">Reseña rechazada</p>
+                    <p className="text-sm text-slate-300">{review.rejection_reason}</p>
+                    <p className="text-xs text-slate-500 mt-2">
+                      Corrígela y volverá a la cola de revisión.
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </EstadoDeLista>
       </div>
     </div>
   );

@@ -1,15 +1,22 @@
 import type { Review } from "../../types";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import api from "../../services/api";
+import { ReviewListItem } from "./ReviewListItem";
+import { EstadoDeLista } from "./EstadoDeLista";
 
 export function AllReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     api.get("reviews/")
-      .then(res => setReviews(res.data))
-      .catch(err => console.error(err));
+      .then(res => setReviews(res.data.results || res.data))
+      .catch(err => {
+        console.error(err);
+        setError(true);
+      })
+      .finally(() => setCargando(false));
   }, []);
 
   return (
@@ -18,20 +25,22 @@ export function AllReviewsPage() {
         Todas las reseñas
       </h1>
 
-      <div className="space-y-6">
-        {reviews.map((r) => (
-          <Link
-            key={r.id}
-            to={`/review/${r.id}`}
-            className="block p-4 rounded-xl bg-slate-800/30 border border-slate-700 hover:border-purple-500"
-          >
-            <h2 className="text-white font-semibold">{r.title}</h2>
-            <p className="text-slate-400 text-sm">
-              {r.media?.title} • {r.media?.type}
-            </p>
-          </Link>
-        ))}
-      </div>
+      <EstadoDeLista
+        cargando={cargando}
+        error={error}
+        vacio={reviews.length === 0}
+        mensajeVacio="Todavía no hay reseñas publicadas."
+      >
+        {/* Usa la misma tarjeta que la portada y la página de un hashtag.
+            Antes esta página tenía su propia tarjeta reducida —solo título y
+            obra, sin portada ni autor ni puntuación—, así que "todas las
+            reseñas" mostraba menos de cada una que la portada. */}
+        <div className="space-y-8">
+          {reviews.map((review) => (
+            <ReviewListItem key={review.id} review={review} />
+          ))}
+        </div>
+      </EstadoDeLista>
     </div>
   );
 }

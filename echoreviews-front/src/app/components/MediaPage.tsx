@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import api from "../../services/api";
 import type { CatalogMedia } from "../../types";
 import { claseDeAspecto, TIPOS_DE_OBRA } from "../../lib/media";
+import { EstadoDeLista } from "./EstadoDeLista";
 
 export function MediaPage() {
   const [mediaList, setMediaList] = useState<CatalogMedia[]>([]);
@@ -15,12 +16,19 @@ export function MediaPage() {
   const [params, setParams] = useSearchParams();
   const filtro = params.get("tipo") ?? "todos";
 
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(false);
+
   useEffect(() => {
     api.get("media/")
       .then((res) => {
-        setMediaList(res.data);
+        setMediaList(res.data.results || res.data);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error(err);
+        setError(true);
+      })
+      .finally(() => setCargando(false));
   }, []);
 
   const filteredMedia =
@@ -62,6 +70,16 @@ export function MediaPage() {
       </div>
 
       {/* GRID DE POSTERS */}
+      <EstadoDeLista
+        cargando={cargando}
+        error={error}
+        vacio={filteredMedia.length === 0}
+        mensajeVacio={
+          filtro === "todos"
+            ? "El catálogo está vacío."
+            : "No hay obras de esta categoría todavía."
+        }
+      >
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
 
         {filteredMedia.map((media) => {
@@ -102,6 +120,7 @@ export function MediaPage() {
         })}
 
       </div>
+      </EstadoDeLista>
 
     </div>
   );
