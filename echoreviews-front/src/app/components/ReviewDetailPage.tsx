@@ -56,47 +56,52 @@ export function ReviewDetailPage() {
         </Link>
       </div>
 
-      {/* Portada.
-          Antes esto era un <div aspect-[21/9]> con la imagen en object-cover:
-          una portada vertical estirada a una banda panorámica, recortada a una
-          franja del medio y ampliada a 1200px de ancho. De ahí venía el
-          pixelado — la imagen se agrandaba muy por encima de su tamaño real.
+      {/* La portada a la izquierda y la reseña a la derecha.
+          Antes la portada era una banda <div aspect-[21/9]> a todo el ancho con
+          la imagen en object-cover: una portada vertical forzada a proporción
+          panorámica, recortada a una franja del medio y ampliada a más de 1000
+          píxeles. De ahí venía el pixelado, y no del recorte.
 
-          Ahora la misma imagen hace dos trabajos: de fondo va desenfocada y
-          ampliada (donde el pixelado no importa porque no se distingue nada),
-          y encima va nítida, a su proporción real y sin pasarse de su tamaño.
-          Es el recurso que usan Letterboxd, Plex y compañía. */}
+          Acá la columna mide 240px y la imagen conserva su proporción, así que
+          nunca se muestra más grande que su tamaño real. */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-800">
-          {review.media?.image && (
+        {/* minmax(0,1fr) en la segunda columna, y min-w-0 en el <article>:
+            sin eso, una palabra larga o un bloque ancho estiran la columna de
+            texto y descuadran toda la rejilla. Es el ajuste que casi siempre
+            falta cuando un grid "se sale" de la pantalla. */}
+        <div className="grid grid-cols-1 md:grid-cols-[240px_minmax(0,1fr)] gap-8 lg:gap-12 items-start">
+
+          {/* Columna de la portada */}
+          <div className="md:sticky md:top-8 space-y-3">
             <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-cover bg-center blur-2xl scale-110 opacity-40"
-              style={{ backgroundImage: `url(${review.media.image})` }}
-            />
-          )}
-
-          <div className="relative flex justify-center py-10">
-            <img
-              src={review.media?.image || "/no-poster.png"}
-              alt={review.media?.title ?? review.title}
-              className={`max-h-[420px] w-auto rounded-xl shadow-2xl shadow-black/50 ${claseDeAspecto(
+              className={`overflow-hidden rounded-xl border border-slate-700 ${claseDeAspecto(
                 review.media?.type
-              )} object-cover`}
-            />
+              )}`}
+            >
+              <img
+                src={review.media?.image || "/no-poster.png"}
+                alt={review.media?.title ?? review.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            <span
+              className={`block text-center px-4 py-2 rounded-full border capitalize text-sm font-medium ${getCategoryColor(
+                review.media?.type
+              )}`}
+            >
+              {review.media?.type}
+            </span>
+
+            {review.media?.pending && (
+              <p className="text-xs text-center text-amber-400">
+                Obra pendiente de aprobación
+              </p>
+            )}
           </div>
-        </div>
-      </div>
 
-      {/* Article Content */}
-      <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        {/* Category Badge */}
-        <div className="flex justify-center mb-6">
-          <span className={`inline-flex items-center px-4 py-2 rounded-full border capitalize text-sm font-medium ${getCategoryColor(review.media?.type)}`}>
-            {review.media?.type}
-          </span>
-        </div>
-
+          {/* Columna de la reseña */}
+          <article className="min-w-0 pb-16">
         {/* Title */}
         <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
           {review.title}
@@ -137,10 +142,14 @@ export function ReviewDetailPage() {
           </div>
         </div>
 
-        {/* Excerpt */}
-        <div className="text-xl text-slate-300 mb-8 p-6 border-l-4 border-purple-500 bg-slate-800/30 rounded-r-xl">
-          {review.content.slice(0, 120)}
-        </div>
+        {/* Acá había un "extracto" con review.content.slice(0, 120) dentro de
+            un recuadro con borde morado, seguido del texto completo que
+            empieza exactamente igual. O sea: repetía palabra por palabra lo
+            que venía tres líneas más abajo.
+
+            Un extracto tiene sentido en un listado, donde reemplaza al texto
+            completo. En el detalle, donde el texto está entero a la vista, no
+            resume nada: solo lo dice dos veces. */}
 
         {/* Content */}
         <div className="prose prose-invert prose-lg max-w-none">
@@ -202,7 +211,9 @@ export function ReviewDetailPage() {
             <span>→</span>
           </Link>
         </div>
-      </article>
+          </article>
+        </div>
+      </div>
     </div>
   );
 }
