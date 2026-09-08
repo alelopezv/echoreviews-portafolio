@@ -131,3 +131,65 @@ def test_un_hashtag_creado_por_un_admin_aparece_en_la_lista(api, admin):
     api.force_authenticate(user=None)
     publicos = [h["name"] for h in api.get("/api/hashtags/").json()]
     assert publicos == ["post rock"]
+
+
+# --------------------------------------------------------------------------
+# 3. Etiquetar desde el formulario de reseñas
+# --------------------------------------------------------------------------
+
+@pytest.mark.django_db
+def test_al_publicar_se_aplican_las_etiquetas_elegidas_y_se_proponen_las_nuevas(
+    api, usuario, obra
+):
+    """El formulario manda dos cosas distintas por el mismo envío.
+
+    Un formulario multipart no sabe de arreglos: repite la misma clave tantas
+    veces como valores haya. Este test existe para comprobar que esa
+    repetición llega al backend como lista y no como un único valor, que es
+    la forma silenciosa en que este tipo de campo se rompe.
+    """
+    anime = Hashtag.objects.create(name="anime", status="approved")
+    culto = Hashtag.objects.create(name="culto", status="approved")
+
+    api.force_authenticate(user=usuario)
+    respuesta = api.post("/api/reviews/create/", {
+        "title": "Reseña con etiquetas",
+        "content": "...",
+        "rating": 5,
+        "media": obra.id,
+        "hashtags": [anime.id, culto.id],       # del catálogo, se aplican ya
+        "hashtag_suggestions": ["Synthwave"],   # nueva, va a la cola
+    }, format="multipart")
+
+    assert respuesta.status_code == 201
+
+    resena = Review.objects.get()
+    assert sorted(h.name for h in resena.hashtags.all()) == ["anime", "culto"]
+
+    # La nueva no se aplica todavía: espera moderación, normalizada.
+    propuesta = HashtagSuggestion.objects.get()
+    assert propuesta.name == "synthwave"
+    assert propuesta.status == "pending"
+    assert list(propuesta.reviews.all()) == [resena]
+    assert not Hashtag.objects.filter(name="synthwave").exists()
+
+
+@pytest.mark.django_db
+def test_proponer_una_etiqueta_que_ya_existe_no_crea_una_sugerencia(api, usuario, obra):
+    """Si la etiqueta ya está aprobada, se aplica directo.
+
+    Sin esto, pedir "Anime" abriría una sugerencia para algo que ya existe y
+    el autor vería su reseña sin la etiqueta hasta que alguien aprobara un
+    duplicado.
+    """
+    anime = Hashtag.objects.create(name="anime", status="approved")
+
+    api.force_authenticate(user=usuario)
+    api.post("/api/reviews/create/", {
+        "title": "Reseña", "content": "...", "rating": 4, "media": obra.id,
+        "hashtag_suggestions": ["anime"],
+    }, format="multipart")
+
+    resena = Review.objects.get()
+    assert list(resena.hashtags.all()) == [anime]
+    assert HashtagSuggestion.objects.count() == 0
