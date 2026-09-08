@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import type { CatalogMedia } from "../../types";
+import { claseDeAspecto } from "../../lib/media";
 
 export function MediaPage() {
   const [mediaList, setMediaList] = useState<CatalogMedia[]>([]);
@@ -73,9 +74,7 @@ export function MediaPage() {
             >
             <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 hover:border-purple-500 transition-all">
 
-              <div className={`overflow-hidden ${
-                media.type === "music" ? "aspect-square" : "aspect-[2/3]"
-              }`}>
+              <div className={`overflow-hidden ${claseDeAspecto(media.type)}`}>
 
                 <img
                   src={media.image || "/no-poster.png"}

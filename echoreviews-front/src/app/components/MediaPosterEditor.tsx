@@ -6,9 +6,15 @@ import type { Area } from "react-easy-crop";
 interface Props {
   image: string;
   onCropConfirm: (area: Area) => void;
+  /**
+   * Ancho / alto del recorte. Lo decide quien use el editor, porque depende
+   * del tipo de obra: un disco es cuadrado y un anime es un cartel vertical.
+   * Antes estaba fijo en 2/3 y a los álbumes les cortaba media tapa.
+   */
+  aspect: number;
 }
 
-export function MediaPosterEditor({ image, onCropConfirm }: Props) {
+export function MediaPosterEditor({ image, onCropConfirm, aspect }: Props) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [pendingArea, setPendingArea] = useState<Area | null>(null);
@@ -29,7 +35,7 @@ export function MediaPosterEditor({ image, onCropConfirm }: Props) {
           image={image}
           crop={crop}
           zoom={zoom}
-          aspect={2 / 3}
+          aspect={aspect}
           onCropChange={setCrop}
           onZoomChange={setZoom}
           onCropComplete={(_, croppedAreaPixels) => {

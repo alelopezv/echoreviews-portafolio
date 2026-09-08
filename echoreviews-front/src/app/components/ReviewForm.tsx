@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import api from "../../services/api";
 import { MediaPosterEditor } from "./MediaPosterEditor";
-import type { CatalogMedia, Hashtag } from "../../types";
+import type { CatalogMedia, Hashtag, MediaType } from "../../types";
 import type { Area } from "react-easy-crop";
+import { RELACION_DE_ASPECTO, TIPOS_DE_OBRA } from "../../lib/media";
 import axios from "axios";
 
 interface ReviewFormProps {
@@ -20,7 +21,7 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
   const [mediaId, setMediaId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [mediaTitle, setMediaTitle] = useState("");
-  const [mediaType, setMediaType] = useState("anime");
+  const [mediaType, setMediaType] = useState<MediaType>("anime");
   const [cropData, setCropData] = useState<Area | null>(null);
   const [mediaDescription, setMediaDescription] = useState("");
 
@@ -209,12 +210,19 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
             />
             <select
               value={mediaType}
-              onChange={(e) => setMediaType(e.target.value)}
+              // El navegador entrega un string cualquiera, así que hay que
+              // afirmarle a TypeScript que es uno de los tres válidos. La
+              // afirmación es honesta porque las opciones se generan de
+              // TIPOS_DE_OBRA, que está tipada: no hay forma de que llegue
+              // un valor que no esté en la unión.
+              onChange={(e) => setMediaType(e.target.value as MediaType)}
               className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white"
             >
-              <option value="anime">Anime</option>
-              <option value="music">Música</option>
-              <option value="game">Videojuego</option>
+              {TIPOS_DE_OBRA.map(({ valor, etiqueta }) => (
+                <option key={valor} value={valor}>
+                  {etiqueta}
+                </option>
+              ))}
             </select>
             <textarea
               value={mediaDescription}
@@ -388,6 +396,7 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
               <MediaPosterEditor
                 image={preview}
                 onCropConfirm={(area) => setCropData(area)}
+                aspect={RELACION_DE_ASPECTO[mediaType]}
               />
               {cropData && (
                 <p className="text-xs text-green-400 mt-1">

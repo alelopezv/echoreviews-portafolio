@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Star } from "lucide-react";
 import api from "../../services/api";
 import type { CatalogMedia, Review } from "../../types";
+import { claseDeAspecto } from "../../lib/media";
 
 export function MediaDetailPage() {
   // useParams lee el trozo variable de la URL. Como la ruta se declara
@@ -77,9 +78,7 @@ export function MediaDetailPage() {
         {/* Portada */}
         <div className="md:col-span-1">
           <div
-            className={`overflow-hidden rounded-xl border border-slate-700 ${
-              media.type === "music" ? "aspect-square" : "aspect-[2/3]"
-            }`}
+            className={`overflow-hidden rounded-xl border border-slate-700 ${claseDeAspecto(media.type)}`}
           >
             <img
               src={media.image || "/no-poster.png"}

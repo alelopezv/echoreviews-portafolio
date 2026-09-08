@@ -1,4 +1,5 @@
 import type { Review } from "../../types";
+import { claseDeAspecto } from "../../lib/media";
 
 interface ReviewCardProps {
   review: Review;
@@ -13,9 +14,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
         <img
           src={review.media.image}
           alt={review.media.title}
-          className={`w-16 object-cover rounded-lg ${
-            review.media.type === "music" ? "aspect-square" : "aspect-[2/3]"
-          }`}
+          className={`w-16 object-cover rounded-lg ${claseDeAspecto(review.media.type)}`}
         />
       )}
 
