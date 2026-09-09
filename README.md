@@ -97,7 +97,8 @@ La API usa **JSON Web Tokens**. Se envían en la cabecera `Authorization: Bearer
 | `POST` | `/api/token/refresh/` | Renovar el token de acceso |
 | `GET` | `/api/users/me/` | Perfil del usuario autenticado |
 
-El registro solo acepta `username`, `email` y `password`: los permisos no son
+El registro solo acepta `username`, `first_name`, `email` y `password`: los
+permisos no son
 campos del formulario. Las contraseñas pasan por los validadores de Django, y
 el nombre de usuario se comprueba sin distinguir mayúsculas para que `Ana` y
 `ana` no puedan ser dos cuentas distintas.
@@ -192,7 +193,7 @@ pendientes, verificación de tipos y build del frontend.
 Para correrlo en local:
 
 ```bash
-# Backend — 39 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+# Backend — 41 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
 cd echoreviews-back
 pip install -r requirements-dev.txt
 pytest

@@ -39,6 +39,7 @@ function mensajeDeError(err: unknown, porDefecto: string): string {
 export function LoginModal({ onClose, onSuccess }: Props) {
   const [modo, setModo] = useState<Modo>("entrar");
   const [username, setUsername] = useState("");
+  const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -71,7 +72,12 @@ export function LoginModal({ onClose, onSuccess }: Props) {
 
     try {
       if (registrando) {
-        const res = await api.post("users/register/", { username, email, password });
+        const res = await api.post("users/register/", {
+          username,
+          first_name: nombre,
+          email,
+          password,
+        });
         // El alta devuelve el par de tokens, así que quien se registra entra
         // directo en vez de tener que escribir lo mismo otra vez.
         entrar(res.data.access, res.data.refresh);
@@ -121,13 +127,22 @@ export function LoginModal({ onClose, onSuccess }: Props) {
           />
 
           {registrando && (
-            <input
-              type="email"
-              placeholder="Correo (opcional)"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 rounded bg-slate-800 text-white"
-            />
+            <>
+              <input
+                type="text"
+                placeholder="Nombre con el que firmas (opcional)"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="w-full p-3 rounded bg-slate-800 text-white"
+              />
+              <input
+                type="email"
+                placeholder="Correo (opcional)"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 rounded bg-slate-800 text-white"
+              />
+            </>
           )}
 
           <input

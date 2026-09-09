@@ -1,13 +1,32 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom"
 import { Home, Hash, Pen, User, Search, Library } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LoginModal } from "./LoginModal";
+import api from "../../services/api";
+import type { User as Usuario } from "../../types";
 
 export function RootLayout() {
   const [showLogin, setShowLogin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("access"));
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Tener un token en localStorage dice que hay sesión, pero no de quién.
+  // Eso solo lo sabe el servidor, así que se le pregunta cada vez que el
+  // estado de sesión cambia: al cargar la página y al iniciar sesión.
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setUsuario(null);
+      return;
+    }
+
+    api.get("users/me/")
+      .then((res) => setUsuario(res.data))
+      // Un token vencido o inválido no debería romper la barra de navegación:
+      // se sigue sin saludo y el resto del sitio funciona igual.
+      .catch(() => setUsuario(null));
+  }, [isLoggedIn]);
 
   const handleLogout = () => {
     localStorage.removeItem("access");
@@ -95,6 +114,14 @@ export function RootLayout() {
 
               {isLoggedIn ? (
                 <div className="flex items-center gap-2">
+                  {/* El saludo aparece recién cuando /users/me/ contesta, así
+                      que no hay un "Hola, undefined" mientras carga. Se oculta
+                      en pantallas chicas: ahí el espacio es para navegar. */}
+                  {usuario && (
+                    <span className="hidden lg:inline text-sm text-slate-400 mr-1">
+                      Hola, <span className="text-purple-300">{usuario.full_name}</span>
+                    </span>
+                  )}
                   <Link
                     to="/profile"
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors"

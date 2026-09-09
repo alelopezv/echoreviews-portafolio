@@ -41,6 +41,47 @@ def test_registrarse_crea_la_cuenta_y_deja_la_sesion_iniciada(api):
 
 
 @pytest.mark.django_db
+def test_el_nombre_es_opcional_y_alimenta_full_name(api):
+    """Con nombre, las reseñas se firman con él; sin nombre, con el usuario.
+
+    full_name existía en la API desde antes que el registro, así que había un
+    campo que solo se podía rellenar desde el admin de Django: quien se daba
+    de alta en el sitio quedaba firmando con su nombre de usuario y sin forma
+    de cambiarlo.
+    """
+    con_nombre = api.post(REGISTRO, {
+        "username": "mlopez",
+        "first_name": "Martina López",
+        "password": "cielo-de-jupiter-77",
+    }, format="json")
+    assert con_nombre.json()["user"]["full_name"] == "Martina López"
+
+    sin_nombre = api.post(REGISTRO, {
+        "username": "sinnombre",
+        "password": "cielo-de-jupiter-77",
+    }, format="json")
+    assert sin_nombre.json()["user"]["full_name"] == "sinnombre"
+
+
+@pytest.mark.django_db
+def test_la_contrasena_tampoco_puede_parecerse_al_nombre(api):
+    """El validador de similitud mira el nombre, no solo el usuario.
+
+    Solo funciona si first_name llega al User que se le pasa a
+    validate_password. Sin eso, alguien llamado "Quetzalcoatl" podría usar su
+    propio nombre de contraseña mientras el usuario fuera otro.
+    """
+    respuesta = api.post(REGISTRO, {
+        "username": "usuario-cualquiera",
+        "first_name": "Quetzalcoatl",
+        "password": "quetzalcoatl4",
+    }, format="json")
+
+    assert respuesta.status_code == 400
+    assert "password" in respuesta.json()
+
+
+@pytest.mark.django_db
 def test_nadie_puede_registrarse_como_administrador(api):
     """Los permisos no son un campo del formulario.
 

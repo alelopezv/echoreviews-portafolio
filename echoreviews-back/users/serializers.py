@@ -19,6 +19,17 @@ class RegistroSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_blank=True)
     password = serializers.CharField(write_only=True)
 
+    # El nombre con el que la persona firma sus reseñas. Va entero a
+    # first_name en vez de partirse en nombre y apellido: separar por el
+    # primer espacio funciona en inglés y falla acá, donde casi todo el mundo
+    # tiene dos apellidos. Si alguien quiere afinarlo, están los dos campos
+    # del modelo disponibles desde el admin.
+    #
+    # Es opcional: sin él, full_name cae al nombre de usuario.
+    first_name = serializers.CharField(
+        max_length=150, required=False, allow_blank=True
+    )
+
     def validate_username(self, valor):
         nombre = valor.strip()
 
@@ -42,9 +53,14 @@ class RegistroSerializer(serializers.Serializer):
         sin él no puede detectar que "alejandro2026" se parece demasiado al
         nombre de quien la está eligiendo.
         """
+        # Se le pasa también el nombre: el validador de similitud compara
+        # contra username, first_name, last_name y email, así que sin el
+        # nombre no podría detectar que "Martina2026" se parece demasiado a
+        # quien la está eligiendo.
         tentativo = User(
             username=attrs.get("username", ""),
             email=attrs.get("email", ""),
+            first_name=attrs.get("first_name", ""),
         )
 
         try:
@@ -65,4 +81,5 @@ class RegistroSerializer(serializers.Serializer):
             username=validated_data["username"],
             email=validated_data.get("email", ""),
             password=validated_data["password"],
+            first_name=validated_data.get("first_name", "").strip(),
         )
