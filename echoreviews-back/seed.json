@@ -117,7 +117,7 @@
       "title": "Steins;Gate",
       "type": "anime",
       "description": "Una serie de ciencia ficción sobre viajes en el tiempo y muy inspirada en la paradoja del Efecto Mariposa.",
-      "image": "media/anime2.jpg",
+      "image": "media/steins-gate.jpg",
       "created_at": "2026-04-14T19:46:23.649Z",
       "status": "approved"
     }
@@ -129,7 +129,7 @@
       "title": "Princess Tutu",
       "type": "anime",
       "description": "Inspirada en el ballet y los cuentos de hadas, en particular en El patito feo y El lago de los cisnes , su historia sigue a una pata que se transforma en la mítica bailarina Princesa Tutu para salvar el corazón destrozado de un príncipe de cuento que ha cobrado vida.",
-      "image": "media/aime2.jpg",
+      "image": "media/princess-tutu.jpg",
       "created_at": "2026-04-16T01:10:13.333Z",
       "status": "approved"
     }
