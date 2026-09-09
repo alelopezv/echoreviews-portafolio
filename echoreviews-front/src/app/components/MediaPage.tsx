@@ -5,6 +5,38 @@ import type { CatalogMedia } from "../../types";
 import { claseDeAspecto, TIPOS_DE_OBRA } from "../../lib/media";
 import { EstadoDeLista } from "./EstadoDeLista";
 
+/** Una obra del catálogo, con su portada en la proporción que le toca. */
+function TarjetaDeObra({ media }: { media: CatalogMedia }) {
+  return (
+    <Link to={`/media/${media.id}`} className="group">
+      <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 hover:border-purple-500 transition-all">
+        <div className={`overflow-hidden ${claseDeAspecto(media.type)}`}>
+          <img
+            src={media.image || "/no-poster.png"}
+            alt={media.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        </div>
+
+        <div className="p-3">
+          <h2 className="text-white font-semibold line-clamp-2">{media.title}</h2>
+          <p className="text-slate-400 text-sm capitalize">{media.type}</p>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function Rejilla({ obras }: { obras: CatalogMedia[] }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      {obras.map((media) => (
+        <TarjetaDeObra key={media.id} media={media} />
+      ))}
+    </div>
+  );
+}
+
 export function MediaPage() {
   const [mediaList, setMediaList] = useState<CatalogMedia[]>([]);
 
@@ -69,7 +101,6 @@ export function MediaPage() {
         )}
       </div>
 
-      {/* GRID DE POSTERS */}
       <EstadoDeLista
         cargando={cargando}
         error={error}
@@ -80,46 +111,37 @@ export function MediaPage() {
             : "No hay obras de esta categoría todavía."
         }
       >
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        {filtro === "todos" ? (
+          /* Sin filtro, el catálogo se agrupa por tipo en vez de mezclarlo
+             todo en una rejilla. Un anime vertical al lado de un disco
+             cuadrado no es un catálogo, es un montón: las categorías existen
+             en los botones y también tienen que existir cuando no se filtra.
 
-        {filteredMedia.map((media) => {
+             Las vacías no se dibujan. Un encabezado "Música" sobre la nada
+             promete algo que no hay. */
+          <div className="space-y-12">
+            {TIPOS_DE_OBRA.map(({ valor, etiqueta }) => {
+              const delTipo = mediaList.filter((m) => m.type === valor);
+              if (delTipo.length === 0) return null;
 
-          return (
-            <Link
-              key={media.id}
-              to={`/media/${media.id}`}
-              className="group"
-            >
-            <div className="rounded-xl overflow-hidden bg-slate-800 border border-slate-700 hover:border-purple-500 transition-all">
-
-              <div className={`overflow-hidden ${claseDeAspecto(media.type)}`}>
-
-                <img
-                  src={media.image || "/no-poster.png"}
-                  alt={media.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-
-              </div>
-
-              <div className="p-3">
-
-                <h2 className="text-white font-semibold line-clamp-2">
-                  {media.title}
-                </h2>
-
-                <p className="text-slate-400 text-sm capitalize">
-                  {media.type}
-                </p>
-
-              </div>
-
-            </div>
-          </Link>
-          );
-        })}
-
-      </div>
+              return (
+                <section key={valor}>
+                  <div className="flex items-baseline gap-3 mb-5">
+                    <h2 className="text-2xl font-bold text-white">{etiqueta}</h2>
+                    <span className="text-sm text-slate-500">
+                      {delTipo.length} {delTipo.length === 1 ? "obra" : "obras"}
+                    </span>
+                  </div>
+                  <Rejilla obras={delTipo} />
+                </section>
+              );
+            })}
+          </div>
+        ) : (
+          /* Con un filtro activo no hace falta encabezado: el botón encendido
+             ya dice qué se está viendo, y repetirlo abajo es redundante. */
+          <Rejilla obras={filteredMedia} />
+        )}
       </EstadoDeLista>
 
     </div>
