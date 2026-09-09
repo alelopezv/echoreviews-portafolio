@@ -23,7 +23,13 @@ export function HomePage() {
       .finally(() => setCargando(false));
   }, []);
 
-  const latestReviews = reviews.slice(0, 6);
+  // La portada muestra las cinco más recientes; el resto está detrás de "Ver
+  // todas las reseñas". El corte es en el cliente porque /api/reviews/ todavía
+  // devuelve el listado completo: cuando exista la paginación, esto pasa a ser
+  // un parámetro del endpoint y el navegador deja de descargar lo que no
+  // muestra.
+  const ULTIMAS_EN_PORTADA = 5;
+  const latestReviews = reviews.slice(0, ULTIMAS_EN_PORTADA);
 
   // Los tres números de la portada salen de las reseñas que acaban de llegar.
   // Antes dos de ellos eran constantes escritas a mano —42 escritores, 156

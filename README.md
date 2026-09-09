@@ -192,7 +192,7 @@ pendientes, verificación de tipos y build del frontend.
 Para correrlo en local:
 
 ```bash
-# Backend — 34 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+# Backend — 39 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
 cd echoreviews-back
 pip install -r requirements-dev.txt
 pytest
@@ -213,7 +213,8 @@ llegue completa, que aprobar una propuesta reenganche todas sus reseñas, que
 moderar no permita reescribir el texto ajeno, que aprobar un hashtag lo
 publique de verdad y etiquete las reseñas que lo pidieron, y que nadie pueda
 darse de alta como administrador ni ocupar un nombre de usuario ya tomado, y
-que un recorte inválido devuelva la portada intacta en vez de arruinarla.
+que un recorte inválido devuelva la portada intacta en vez de arruinarla, y
+que moderar desde el admin deje la base igual que moderar por la API.
 
 ---
 
