@@ -22,12 +22,21 @@ except OSError:
 done
 echo "✅ MySQL respondiendo."
 
-# Copiar las imágenes de demo a MEDIA_ROOT si todavía no están.
-# Se versionan en seed_assets/ para no mezclarlas con lo que suben
-# los usuarios, que vive en mediafiles/ y está en .gitignore.
+# Copiar las imágenes de demo a MEDIA_ROOT. Se versionan en seed_assets/
+# para no mezclarlas con lo que suben los usuarios, que vive en mediafiles/
+# y está en .gitignore.
+#
+# Antes esto usaba `cp -n` (no sobrescribir), con la idea de proteger las
+# subidas de los usuarios. El efecto real era otro: cambiar una portada del
+# seed no servía de nada, porque el archivo viejo ya estaba en mediafiles/ y
+# el copiado lo saltaba en silencio.
+#
+# Sobrescribir es seguro porque un usuario nunca puede ocupar estos nombres:
+# cuando alguien sube un archivo que ya existe, Django le agrega un sufijo
+# antes de guardarlo. Los nombres del seed solo los usa el seed.
 if [ -d /app/seed_assets/media ]; then
   mkdir -p /app/mediafiles/media
-  cp -n /app/seed_assets/media/* /app/mediafiles/media/ 2>/dev/null || true
+  cp /app/seed_assets/media/* /app/mediafiles/media/ 2>/dev/null || true
 fi
 
 echo "🔄 Aplicando migraciones..."
