@@ -146,13 +146,15 @@
       "rating": 5,
       "status": "approved",
       "approved_by": 1,
-      "approved_at": null,
+      "approved_at": "2026-04-10T04:28:29.197Z",
       "created_at": "2026-04-10T04:28:29.197Z",
       "updated_at": "2026-04-16T01:24:53.637Z",
       "hashtags": [
         1,
+        3,
         6,
-        7
+        7,
+        9
       ]
     }
   },
@@ -168,10 +170,14 @@
       "rating": 5,
       "status": "approved",
       "approved_by": 1,
-      "approved_at": null,
+      "approved_at": "2026-04-16T01:12:51.782Z",
       "created_at": "2026-04-16T01:12:51.782Z",
       "updated_at": "2026-04-16T01:12:51.782Z",
-      "hashtags": []
+      "hashtags": [
+        4,
+        5,
+        3
+      ]
     }
   },
   {
@@ -186,11 +192,179 @@
       "rating": 5,
       "status": "approved",
       "approved_by": null,
-      "approved_at": null,
+      "approved_at": "2026-04-20T01:19:20.703Z",
       "created_at": "2026-04-20T01:19:20.703Z",
       "updated_at": "2026-04-20T01:20:16.173Z",
       "hashtags": [
         2,
+        3,
+        6
+      ]
+    }
+  },
+  {
+    "model": "hashtags.hashtag",
+    "pk": 8,
+    "fields": {
+      "name": "kaiba",
+      "created_at": "2026-05-02T12:00:00.000Z",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "hashtags.hashtag",
+    "pk": 9,
+    "fields": {
+      "name": "distopia",
+      "created_at": "2026-05-02T12:00:00.000Z",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "hashtags.hashtag",
+    "pk": 10,
+    "fields": {
+      "name": "beachhouse",
+      "created_at": "2026-05-02T12:00:00.000Z",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "hashtags.hashtag",
+    "pk": 11,
+    "fields": {
+      "name": "dreampop",
+      "created_at": "2026-05-02T12:00:00.000Z",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "hashtags.hashtag",
+    "pk": 12,
+    "fields": {
+      "name": "nierautomata",
+      "created_at": "2026-05-02T12:00:00.000Z",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "hashtags.hashtag",
+    "pk": 13,
+    "fields": {
+      "name": "existencialismo",
+      "created_at": "2026-05-02T12:00:00.000Z",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "hashtags.hashtag",
+    "pk": 14,
+    "fields": {
+      "name": "videojuegos",
+      "created_at": "2026-05-02T12:00:00.000Z",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "media.media",
+    "pk": 4,
+    "fields": {
+      "title": "Kaiba",
+      "type": "anime",
+      "description": "En un futuro donde los recuerdos se almacenan, se comercian y se falsifican, un joven despierta sin memoria y con un agujero en el pecho. Doce episodios dirigidos por Masaaki Yuasa, estrenados en 2008.",
+      "image": "media/kaiba.jpg",
+      "created_at": "2026-05-02T11:00:00.000Z",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "media.media",
+    "pk": 5,
+    "fields": {
+      "title": "Beach House - Bloom",
+      "type": "music",
+      "description": "Cuarto álbum del dúo de dream pop de Baltimore, publicado en 2012. Diez canciones construidas sobre órgano, guitarra con reverberación larga y la voz de Victoria Legrand.",
+      "image": "media/beach-house-bloom.jpg",
+      "created_at": "2026-06-14T11:00:00.000Z",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "media.media",
+    "pk": 6,
+    "fields": {
+      "title": "NieR: Automata",
+      "type": "game",
+      "description": "Androides enviados a recuperar una Tierra ocupada por máquinas. Juego de acción desarrollado por PlatinumGames en 2017 bajo la dirección de Yoko Taro, con música de Keiichi Okabe.",
+      "image": "media/nier-automata.jpg",
+      "created_at": "2026-07-21T11:00:00.000Z",
+      "status": "approved"
+    }
+  },
+  {
+    "model": "reviews.review",
+    "pk": 4,
+    "fields": {
+      "user": 1,
+      "media": 4,
+      "media_suggestion": null,
+      "title": "La memoria también tiene precio",
+      "content": "Kaiba se ve como un dibujo animado para chicos y trata sobre la explotación. Ese contraste no es un chiste ni un truco: es el argumento. Yuasa dibuja cabezas redondas y colores planos para contar un mundo donde los recuerdos se guardan en chips, se compran, se editan y se roban, y donde el cuerpo es un envase que se descarta cuando conviene.\n\nEl tramo central abandona al protagonista y se dedica a historias sueltas de gente cualquiera. Es la mejor decisión de la serie. En vez de explicarte el sistema, te lo muestra desde abajo: quien vende sus años buenos para comer, quien compra un cuerpo más joven, quien conserva un recuerdo falso porque el verdadero no se aguanta.\n\nEs breve, no da explicaciones de más y confía en que uno va a atar los cabos. Y deja una pregunta incómoda de las que no se responden solas: si todo lo que recordás se puede editar, ¿qué te queda que sea tuyo?",
+      "rating": 5,
+      "status": "approved",
+      "approved_by": 1,
+      "approved_at": "2026-05-02T18:30:00.000Z",
+      "created_at": "2026-05-02T13:00:00.000Z",
+      "updated_at": "2026-05-02T13:00:00.000Z",
+      "hashtags": [
+        8,
+        3,
+        6,
+        9,
+        7
+      ]
+    }
+  },
+  {
+    "model": "reviews.review",
+    "pk": 5,
+    "fields": {
+      "user": 2,
+      "media": 5,
+      "media_suggestion": null,
+      "title": "Un disco que no tiene apuro",
+      "content": "Bloom no busca sorprender a nadie, y ahí está su decisión más firme. Beach House ya había encontrado su forma en el disco anterior, y en vez de escaparse de ella la lleva hasta el final: órgano, guitarras con reverberación larga, batería que marca el paso sin empujar, y la voz puesta como un instrumento más y no como el centro.\n\nLas canciones se arman por acumulación. Empiezan con dos o tres elementos y van sumando capas hasta que uno se da cuenta, tarde, de que lo que sonaba mínimo terminó siendo enorme. El tema que abre el disco explica ese método en cuatro minutos, y el resto lo repite con paciencia de artesano.\n\nLa objeción que se le hace es entendible: es más de lo mismo. Yo lo escucho al revés. Hay discos que buscan una idea nueva y hay discos que agotan una idea buena, y éste pertenece al segundo grupo sin pedir disculpas. No es para poner de fondo mientras hacés otra cosa; es para cuando querés que la tarde dure un poco más.",
+      "rating": 4,
+      "status": "approved",
+      "approved_by": 1,
+      "approved_at": "2026-06-14T18:30:00.000Z",
+      "created_at": "2026-06-14T13:00:00.000Z",
+      "updated_at": "2026-06-14T13:00:00.000Z",
+      "hashtags": [
+        10,
+        11
+      ]
+    }
+  },
+  {
+    "model": "reviews.review",
+    "pk": 6,
+    "fields": {
+      "user": 2,
+      "media": 6,
+      "media_suggestion": null,
+      "title": "No termina cuando dice que termina",
+      "content": "Automata pide algo que casi ningún juego se anima a pedir: que lo termines y vuelvas a empezar. Y no como un modo difícil ni como contenido extra — la segunda vuelta cuenta lo mismo desde otros ojos, y lo que era una escena de acción pasa a ser otra cosa completamente. Recién en la tercera el juego enseña de qué venía hablando.\n\nComo juego de acción es excelente y podría haberse quedado ahí. Las peleas son rápidas, legibles y satisfactorias, y la música convierte cualquier pasillo vacío en un lugar con peso. Pero esa solidez funciona como carnada: cuanto más cómodo estás con el sistema, más incómodo se vuelve lo que el juego te va contando sobre por qué estás peleando.\n\nEl final que todos mencionan se lo ganó, y no por espectacular. Es el único que conozco que convierte terminar un juego en un gesto hacia otra persona, y que te pregunta, de verdad y con consecuencias, si estás dispuesto a renunciar a algo tuyo por alguien a quien no vas a conocer nunca. Se puede discutir casi todo del juego menos eso.",
+      "rating": 5,
+      "status": "approved",
+      "approved_by": 1,
+      "approved_at": "2026-07-21T18:30:00.000Z",
+      "created_at": "2026-07-21T13:00:00.000Z",
+      "updated_at": "2026-07-21T13:00:00.000Z",
+      "hashtags": [
+        12,
+        14,
+        13,
         6
       ]
     }

@@ -75,8 +75,9 @@ npm run dev
 ## 🌱 Datos de prueba
 
 El archivo `seed.json` incluye un catálogo mínimo para que la aplicación se vea
-poblada apenas la levantas: 2 usuarios, 3 obras con sus portadas, 3 reseñas y
-7 hashtags con sus relaciones.
+poblada apenas la levantas: 2 usuarios, 6 obras con sus portadas —anime, un
+disco y un videojuego—, 6 reseñas y 14 hashtags con sus relaciones. Es el mismo
+contenido que aparece en las capturas de arriba.
 
 **Usuario administrador:** `admin` / `12345678`
 
