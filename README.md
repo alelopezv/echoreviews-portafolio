@@ -145,6 +145,8 @@ que `Ana` y `ana` no puedan ser dos cuentas distintas.
 - Formulario de reseñas con selección de obra existente o propuesta de una nueva,
   incluyendo carga y recorte de la portada.
 - Feed de reseñas, catálogo de obras, navegación por hashtags y vista de perfil.
+- Edición de reseñas propias, que cierra el ciclo de moderación: una reseña
+  rechazada se corrige desde el perfil y vuelve sola a la cola de revisión.
 - Las respuestas de la API están descritas en `src/types.ts`, un tipo por
   endpoint. TypeScript corre en modo estricto y no queda ningún `any` explícito.
 
@@ -193,7 +195,7 @@ pendientes, verificación de tipos y build del frontend.
 Para correrlo en local:
 
 ```bash
-# Backend — 41 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+# Backend — 42 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
 cd echoreviews-back
 pip install -r requirements-dev.txt
 pytest

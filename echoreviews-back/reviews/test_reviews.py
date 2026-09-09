@@ -202,6 +202,36 @@ def test_un_admin_no_puede_editar_la_resena_de_otro(api, admin, resena_aprobada)
 
 
 @pytest.mark.django_db
+def test_el_autor_puede_corregir_su_resena_y_sus_etiquetas(api, usuario, resena_aprobada):
+    """Lo que hace la página de edición, de punta a punta.
+
+    Las etiquetas viajan como ids en el PATCH aunque la reseña las devuelva
+    por nombre, así que el formulario tiene que cruzarlas contra el catálogo
+    antes de mandarlas. Este test fija ese contrato.
+    """
+    from hashtags.models import Hashtag
+
+    anime = Hashtag.objects.create(name="anime", status="approved")
+    culto = Hashtag.objects.create(name="culto", status="approved")
+    resena_aprobada.hashtags.set([anime])
+
+    api.force_authenticate(user=usuario)
+    respuesta = api.patch(f"/api/reviews/{resena_aprobada.id}/", {
+        "title": "Título corregido",
+        "content": "Texto reescrito por su autor.",
+        "rating": 3,
+        "hashtags": [culto.id],
+    }, format="json")
+
+    assert respuesta.status_code == 200
+
+    resena_aprobada.refresh_from_db()
+    assert resena_aprobada.title == "Título corregido"
+    assert resena_aprobada.rating == 3
+    assert list(resena_aprobada.hashtags.all()) == [culto]   # reemplaza, no suma
+
+
+@pytest.mark.django_db
 def test_el_ciclo_de_rechazo_devuelve_la_resena_a_su_autor(api, usuario, admin, resena_aprobada):
     """Rechazar exige motivo; corregir devuelve la reseña a la cola."""
     # Sin motivo no se puede rechazar.

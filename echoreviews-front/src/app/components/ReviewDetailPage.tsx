@@ -1,13 +1,15 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Calendar, Clock, Star, Hash, User } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, Star, Hash, User, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import type { Media, Review } from "../../types"
 import { claseDeAspecto } from "../../lib/media";
+import { useUsuarioActual } from "../../lib/sesion";
 
 export function ReviewDetailPage() {
   const { id } = useParams();
   const [review, setReview] = useState<Review | null>(null);
+  const usuario = useUsuarioActual();
 
   useEffect(() => {
     if (!id) return;
@@ -46,7 +48,7 @@ export function ReviewDetailPage() {
   return (
     <div className="min-h-screen">
       {/* Back Button */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 flex items-center justify-between">
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-slate-400 hover:text-purple-400 transition-colors"
@@ -54,6 +56,19 @@ export function ReviewDetailPage() {
           <ArrowLeft className="w-4 h-4" />
           <span>Volver</span>
         </Link>
+
+        {/* Solo el autor. El backend responde 403 a cualquier otro, así que
+            esconder el enlace no es la seguridad: es no ofrecer una puerta
+            que va a estar cerrada. */}
+        {usuario?.username === review.username && (
+          <Link
+            to={`/review/${review.id}/edit`}
+            className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-purple-500/10 transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+            Editar
+          </Link>
+        )}
       </div>
 
       {/* La portada a la izquierda y la reseña a la derecha.

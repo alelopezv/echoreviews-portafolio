@@ -1,4 +1,4 @@
-import { Award } from "lucide-react";
+import { Award, Pencil } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ReviewCard } from "./ReviewCard";
@@ -78,13 +78,29 @@ export function ProfilePage() {
                   <ReviewCard review={review} />
                 </Link>
 
+                <div className="mt-2 flex justify-end">
+                  <Link
+                    to={`/review/${review.id}/edit`}
+                    className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-purple-500/10 transition-colors"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Editar
+                  </Link>
+                </div>
+
                 {review.status === "rejected" && (
                   <div className="mt-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30">
                     <p className="text-sm font-semibold text-red-400 mb-1">Reseña rechazada</p>
                     <p className="text-sm text-slate-300">{review.rejection_reason}</p>
-                    <p className="text-xs text-slate-500 mt-2">
-                      Corrígela y volverá a la cola de revisión.
-                    </p>
+                    {/* Esto decía "corrígela y volverá a la cola" desde hacía
+                        tiempo, sin que existiera ningún lugar donde corregirla.
+                        Ahora el texto es un enlace y la promesa se cumple. */}
+                    <Link
+                      to={`/review/${review.id}/edit`}
+                      className="inline-block text-xs text-purple-400 hover:text-purple-300 mt-2"
+                    >
+                      Corrígela y volverá a la cola de revisión →
+                    </Link>
                   </div>
                 )}
               </div>
