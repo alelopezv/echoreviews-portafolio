@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom"
+import { Outlet, Link, useLocation, useNavigate, ScrollRestoration } from "react-router-dom"
 import { Home, Hash, Pen, User, Search, Library } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LoginModal } from "./LoginModal";
@@ -149,6 +149,21 @@ export function RootLayout() {
           </div>
         </div>
       </header>
+
+      {/* Cambiar de ruta no recarga el documento: React Router solo cambia qué
+          componente se dibuja dentro del <Outlet />. El <html> sigue siendo el
+          mismo elemento de hace un segundo, con su scroll donde estaba, así que
+          abrir una reseña desde el final del listado te dejaba en mitad del
+          texto en vez de en el título. En móvil se notaba mucho más, porque
+          todo se apila en una columna y las páginas miden el triple de alto.
+
+          Se usa este componente y no un window.scrollTo(0, 0) dentro de un
+          useEffect porque hace las dos cosas: al navegar hacia adelante manda
+          el scroll arriba, y al volver con el botón "atrás" devuelve la
+          posición que tenías en esa página. La versión a mano solo hace lo
+          primero, y de paso rompe lo segundo: bajabas veinte reseñas, entrabas
+          a una, volvías, y habías perdido tu lugar. */}
+      <ScrollRestoration />
 
       <main>
         <Outlet />
