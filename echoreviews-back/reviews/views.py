@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions  # ✅ quitado "request" que pisaba el parámetro
+from django.db.models import Q
 from django.utils import timezone
 from .models import Review
 from media.models import Media, MediaSuggestion
@@ -15,6 +16,32 @@ class ApprovedReviewsView(APIView):
 
     def get(self, request):
         reviews = Review.objects.filter(status="approved")
+
+        # Búsqueda por texto: /api/reviews/?q=bebop
+        #
+        # Va con Q y el operador | porque hace falta un OR. Encadenar filtros
+        # (.filter(a).filter(b)) sería un AND, y exigiría que el texto
+        # apareciera en el título Y en el contenido Y en el nombre de la obra
+        # a la vez, que no encontraría casi nada.
+        #
+        # media_suggestion__title está en la lista a propósito: una reseña cuya
+        # obra todavía espera aprobación no tiene `media`, y buscarla por el
+        # nombre de la obra no debería depender de si un moderador ya pasó por
+        # ahí. Es la misma regla que sostiene el serializer.
+        #
+        # Los dos son ForeignKey, o sea que cada reseña tiene como mucho una
+        # obra y una propuesta: el JOIN no multiplica filas y no hace falta
+        # .distinct(). Con hashtags (ManyToMany) sí haría falta, y por eso
+        # quedan fuera: para eso está /api/hashtags/ y su propia página.
+        termino = (request.query_params.get("q") or "").strip()
+        if termino:
+            reviews = reviews.filter(
+                Q(title__icontains=termino)
+                | Q(content__icontains=termino)
+                | Q(media__title__icontains=termino)
+                | Q(media_suggestion__title__icontains=termino)
+            )
+
         serializer = ReviewSerializer(reviews, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 

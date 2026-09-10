@@ -9,8 +9,26 @@ export function RootLayout() {
   const [showLogin, setShowLogin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("access"));
   const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [buscadorAbierto, setBuscadorAbierto] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
+
+  const buscar = (e: React.FormEvent) => {
+    // Sin esto el navegador recargaría la página entera al enviar el
+    // formulario, que es lo que hace un <form> por defecto.
+    e.preventDefault();
+
+    const termino = busqueda.trim();
+    if (!termino) return;
+
+    // encodeURIComponent porque el término va dentro de la URL: sin él,
+    // buscar "rock & roll" cortaría el parámetro en el & y el backend
+    // recibiría solo "rock ".
+    navigate(`/all-reviews?q=${encodeURIComponent(termino)}`);
+    setBuscadorAbierto(false);
+    setBusqueda("");
+  };
 
   // Tener un token en localStorage dice que hay sesión, pero no de quién.
   // Eso solo lo sabe el servidor, así que se le pregunta cada vez que el
@@ -108,9 +126,40 @@ export function RootLayout() {
             </nav>
 
             <div className="flex items-center gap-2">
-              <button className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors">
-                <Search className="w-5 h-5" />
-              </button>
+              {/* La lupa llevaba a ninguna parte: era un <button> sin onClick,
+                  heredado de la maqueta. Se iluminaba al pasar el mouse y no
+                  hacía nada, que es peor que no estar. */}
+              {buscadorAbierto ? (
+                <form onSubmit={buscar} className="flex items-center gap-1">
+                  <input
+                    autoFocus
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setBuscadorAbierto(false);
+                    }}
+                    placeholder="Buscar reseñas…"
+                    aria-label="Buscar reseñas"
+                    className="w-32 sm:w-56 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  />
+                  <button
+                    type="submit"
+                    aria-label="Buscar"
+                    className="p-2 rounded-lg text-purple-300 hover:text-white hover:bg-slate-800/50 transition-colors"
+                  >
+                    <Search className="w-5 h-5" />
+                  </button>
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setBuscadorAbierto(true)}
+                  aria-label="Buscar reseñas"
+                  className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors"
+                >
+                  <Search className="w-5 h-5" />
+                </button>
+              )}
 
               {isLoggedIn ? (
                 <div className="flex items-center gap-2">

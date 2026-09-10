@@ -110,7 +110,7 @@ que `Ana` y `ana` no puedan ser dos cuentas distintas.
 
 | Método | Endpoint | Acceso | Descripción |
 |---|---|---|---|
-| `GET` | `/api/reviews/` | Público | Reseñas aprobadas |
+| `GET` | `/api/reviews/` | Público | Reseñas aprobadas. Con `?q=` busca en el título, el texto y el nombre de la obra |
 | `POST` | `/api/reviews/create/` | Autenticado | Crear una reseña |
 | `GET` | `/api/reviews/mine/` | Autenticado | Mis reseñas |
 | `GET` `PATCH` `DELETE` | `/api/reviews/<id>/` | Autenticado | Detalle, edición y borrado |
@@ -146,6 +146,9 @@ que `Ana` y `ana` no puedan ser dos cuentas distintas.
 - Formulario de reseñas con selección de obra existente o propuesta de una nueva,
   incluyendo carga y recorte de la portada.
 - Feed de reseñas, catálogo de obras, navegación por hashtags y vista de perfil.
+- Buscador en la barra superior. El término viaja en la URL (`/all-reviews?q=`),
+  así que una búsqueda es un enlace que se puede compartir y al que el botón
+  «atrás» vuelve. El filtro del catálogo funciona igual (`/media?tipo=music`).
 - Edición de reseñas propias, que cierra el ciclo de moderación: una reseña
   rechazada se corrige desde el perfil y vuelve sola a la cola de revisión.
 - Las respuestas de la API están descritas en `src/types.ts`, un tipo por
@@ -196,7 +199,7 @@ pendientes, verificación de tipos y build del frontend.
 Para correrlo en local:
 
 ```bash
-# Backend — 42 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+# Backend — 48 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
 cd echoreviews-back
 pip install -r requirements-dev.txt
 pytest
@@ -218,7 +221,12 @@ moderar no permita reescribir el texto ajeno, que aprobar un hashtag lo
 publique de verdad y etiquete las reseñas que lo pidieron, y que nadie pueda
 darse de alta como administrador ni ocupar un nombre de usuario ya tomado, y
 que un recorte inválido devuelva la portada intacta en vez de arruinarla, y
-que moderar desde el admin deje la base igual que moderar por la API.
+que moderar desde el admin deje la base igual que moderar por la API, y que
+buscar no sea una puerta trasera para leer lo que el listado público esconde.
+
+Cada regla se comprueba además al revés, rompiéndola a propósito para ver si
+algún test se da cuenta. Un test que sigue en verde con el código roto no
+está cuidando nada.
 
 ---
 
@@ -231,9 +239,13 @@ Proyecto de portafolio, en desarrollo activo. Trabajo pendiente conocido:
 - Las reseñas de una obra y las de un hashtag se filtran en el cliente: se pide
   el listado completo y se descarta lo que no corresponde. Con este volumen
   alcanza; con más contenido serían parámetros del endpoint (`?media=`,
-  `?hashtag=`) en vez de más código en el navegador.
+  `?hashtag=`), siguiendo el patrón que ya usa `?q=`.
 - La paginación no está implementada: `/api/reviews/` devuelve todas las
   reseñas aprobadas en una sola respuesta.
+- La búsqueda usa `icontains`, que en SQL es un `LIKE '%texto%'`. Un comodín al
+  principio no puede aprovechar el índice, así que la base recorre la tabla
+  entera. Con este catálogo es instantáneo; a partir de cierto tamaño el
+  siguiente paso sería búsqueda de texto completo.
 
 ---
 

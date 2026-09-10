@@ -80,6 +80,82 @@ def test_el_listado_publico_solo_muestra_aprobadas(api, usuario, obra, resena_ap
     assert titulos == ["Una obra maestra"]
 
 
+@pytest.mark.django_db
+def test_la_busqueda_mira_titulo_contenido_y_obra(api, usuario, obra, resena_aprobada):
+    """Un solo ?q= tiene que encontrar por los tres lados.
+
+    Es un OR, no un AND: si fueran filtros encadenados habría que escribir un
+    texto que estuviera a la vez en el título, en el cuerpo y en el nombre de
+    la obra, y no encontraría nunca nada.
+    """
+    Review.objects.create(
+        user=usuario, media=obra, title="Sobre el jazz",
+        content="Nada que ver con lo otro.", rating=4, status="approved",
+    )
+
+    def titulos(termino):
+        return sorted(r["title"] for r in api.get(f"/api/reviews/?q={termino}").json())
+
+    assert titulos("maestra") == ["Una obra maestra"]          # por título
+    assert titulos("vacío") == ["Una obra maestra"]            # por contenido
+    assert titulos("bebop") == ["Sobre el jazz", "Una obra maestra"]  # por obra
+    assert titulos("BEBOP") == ["Sobre el jazz", "Una obra maestra"]  # sin distinguir mayúsculas
+    assert titulos("nomatch") == []
+
+    # Sobre esa penúltima línea: NO demuestra que la vista use `icontains`.
+    # Estos tests corren sobre SQLite, y SQLite no sabe hacer un LIKE que
+    # distinga mayúsculas, así que `contains` e `icontains` hacen exactamente
+    # lo mismo. Cambiar uno por otro deja los tests en verde.
+    #
+    # En MySQL, que es donde corre el proyecto, pasa algo parecido pero por
+    # otro motivo: su colación por defecto ya compara ignorando mayúsculas.
+    # Donde sí se notaría la diferencia es en PostgreSQL. `icontains` queda
+    # porque es lo que expresa la intención en cualquier motor, no porque un
+    # test pueda obligarlo.
+
+
+@pytest.mark.django_db
+def test_buscar_no_saca_a_la_luz_lo_que_no_esta_aprobado(api, usuario, obra):
+    """El filtro de estado manda sobre la búsqueda.
+
+    Sin esto, ?q= sería una puerta trasera para leer lo que el listado
+    público esconde: bastaría adivinar una palabra del texto.
+    """
+    Review.objects.create(
+        user=usuario, media=obra, title="Secreto pendiente",
+        content="Todavía no la revisa nadie.", rating=2, status="pending",
+    )
+
+    assert api.get("/api/reviews/?q=secreto").json() == []
+
+
+@pytest.mark.django_db
+def test_una_busqueda_vacia_devuelve_el_listado_completo(api, resena_aprobada):
+    """?q= sin texto (o con puros espacios) no es un filtro."""
+    assert len(api.get("/api/reviews/?q=").json()) == 1
+    assert len(api.get("/api/reviews/?q=%20%20").json()) == 1
+
+
+@pytest.mark.django_db
+def test_se_puede_buscar_por_una_obra_todavia_pendiente(api, usuario, portada):
+    """La obra propuesta también cuenta.
+
+    Una reseña cuya obra espera aprobación no tiene `media`: su título vive en
+    la propuesta. Buscarla no debería depender de si un moderador ya pasó.
+    """
+    propuesta = MediaSuggestion.objects.create(
+        title="Serial Experiments Lain", type="anime",
+        description="Cables y soledad.", image=portada, created_by=usuario,
+    )
+    Review.objects.create(
+        user=usuario, media=None, media_suggestion=propuesta,
+        title="Con propuesta", content="...", rating=5, status="approved",
+    )
+
+    encontradas = api.get("/api/reviews/?q=lain").json()
+    assert [r["title"] for r in encontradas] == ["Con propuesta"]
+
+
 # --------------------------------------------------------------------------
 # 3. El contrato de salida es estable
 # --------------------------------------------------------------------------
