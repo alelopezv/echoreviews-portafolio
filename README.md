@@ -158,6 +158,11 @@ que `Ana` y `ana` no puedan ser dos cuentas distintas.
 
 ## 📡 Endpoints principales
 
+Con el backend corriendo, **[localhost:8000/api/docs/](http://localhost:8000/api/docs/)**
+tiene la documentación completa: se genera leyendo las vistas y los
+serializers, así que no puede quedar desactualizada como una escrita aparte.
+El esquema OpenAPI en bruto está en `/api/schema/`.
+
 | Método | Endpoint | Acceso | Descripción |
 |---|---|---|---|
 | `GET` | `/api/reviews/` | Público | Reseñas aprobadas. Con `?q=` busca en el título, el texto, el nombre de la obra y las etiquetas |

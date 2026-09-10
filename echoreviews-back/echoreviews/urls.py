@@ -19,10 +19,17 @@ from django.urls import path, include
 
 from django.conf import settings
 from django.conf.urls.static import static
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Documentación de la API, generada leyendo las vistas y los serializers.
+    # /api/schema/ devuelve el OpenAPI en bruto —que sirve para generar
+    # clientes— y /api/docs/ es la página que se puede leer y probar.
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
 
     path("api/reviews/", include("reviews.urls")),
     path("api/hashtags/", include("hashtags.urls")),

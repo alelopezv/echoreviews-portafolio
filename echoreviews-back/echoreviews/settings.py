@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'drf_spectacular',
     'hashtags',
     'media',
     'reviews',
@@ -159,6 +160,29 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "echoreviews.authentication.SoftJWTAuthentication",
     ),
+    # drf-spectacular lee las vistas y genera el esquema OpenAPI solo. Se
+    # prefiere a escribir la documentación a mano por una razón concreta: una
+    # documentación escrita aparte envejece mal. Cambias un serializer, se te
+    # olvida el archivo de docs, y a partir de ahí la documentación miente.
+    # Generándola del código, no puede desincronizarse.
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "API de EchoReviews",
+    "DESCRIPTION": (
+        "Reseñas de anime, música y videojuegos con moderación.\n\n"
+        "Leer es público; escribir exige un token JWT en la cabecera "
+        "`Authorization: Bearer <token>`, que se obtiene en `/api/token/`.\n\n"
+        "Toda reseña habla de una obra: o una del catálogo, o una propuesta "
+        "que espera aprobación. Las reseñas nacen en estado `pending` sin "
+        "importar lo que mande el cliente, y un moderador decide si se "
+        "publican o vuelven a su autor con un motivo."
+    ),
+    "VERSION": "1.0.0",
+    # El esquema en bruto no se sirve dentro de la interfaz: para eso está la
+    # ruta /api/schema/, y así la página de documentación carga más liviana.
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 SIMPLE_JWT = {
