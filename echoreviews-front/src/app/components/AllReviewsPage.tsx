@@ -60,7 +60,7 @@ export function AllReviewsPage() {
         vacio={reviews.length === 0}
         mensajeVacio={
           termino
-            ? `Ninguna reseña menciona «${termino}». Se busca en el título, en el texto y en el nombre de la obra.`
+            ? `Ninguna reseña menciona «${termino}». Se busca en el título, en el texto, en el nombre de la obra y en las etiquetas.`
             : "Todavía no hay reseñas publicadas."
         }
       >

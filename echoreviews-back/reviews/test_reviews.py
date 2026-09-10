@@ -115,6 +115,25 @@ def test_la_busqueda_mira_titulo_contenido_y_obra(api, usuario, obra, resena_apr
 
 
 @pytest.mark.django_db
+def test_se_puede_buscar_por_etiqueta_y_sin_repetir_resultados(api, resena_aprobada):
+    """Las etiquetas son cómo está organizado el sitio: el buscador las mira.
+
+    Y de paso fija el .distinct(). hashtags es ManyToMany, así que el JOIN
+    devuelve una fila por etiqueta: sin distinct, una reseña marcada con dos
+    etiquetas que coinciden sale DOS VECES en los resultados.
+    """
+    from hashtags.models import Hashtag
+
+    resena_aprobada.hashtags.set([
+        Hashtag.objects.create(name="sci-fi", status="approved"),
+        Hashtag.objects.create(name="scifi-clasico", status="approved"),
+    ])
+
+    encontradas = api.get("/api/reviews/?q=sci").json()
+    assert [r["title"] for r in encontradas] == ["Una obra maestra"]
+
+
+@pytest.mark.django_db
 def test_buscar_no_saca_a_la_luz_lo_que_no_esta_aprobado(api, usuario, obra):
     """El filtro de estado manda sobre la búsqueda.
 

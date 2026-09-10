@@ -29,10 +29,16 @@ class ApprovedReviewsView(APIView):
         # nombre de la obra no debería depender de si un moderador ya pasó por
         # ahí. Es la misma regla que sostiene el serializer.
         #
-        # Los dos son ForeignKey, o sea que cada reseña tiene como mucho una
-        # obra y una propuesta: el JOIN no multiplica filas y no hace falta
-        # .distinct(). Con hashtags (ManyToMany) sí haría falta, y por eso
-        # quedan fuera: para eso está /api/hashtags/ y su propia página.
+        # Las etiquetas también entran: son la forma en que está organizado el
+        # sitio, y quien escribe "sci-fi" en el buscador espera resultados, no
+        # que le digan que eso se busca en otra página.
+        #
+        # De ahí sale el .distinct(). Title, content y las dos obras cuelgan de
+        # ForeignKey —cada reseña tiene como mucho una obra y una propuesta—,
+        # así que ese JOIN devuelve una fila por reseña. hashtags es
+        # ManyToMany: el JOIN devuelve una fila POR ETIQUETA, y una reseña
+        # marcada con "sci-fi" y "scifi" saldría dos veces en los resultados
+        # de "sci". El .distinct() las colapsa.
         termino = (request.query_params.get("q") or "").strip()
         if termino:
             reviews = reviews.filter(
@@ -40,7 +46,8 @@ class ApprovedReviewsView(APIView):
                 | Q(content__icontains=termino)
                 | Q(media__title__icontains=termino)
                 | Q(media_suggestion__title__icontains=termino)
-            )
+                | Q(hashtags__name__icontains=termino)
+            ).distinct()
 
         serializer = ReviewSerializer(reviews, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)

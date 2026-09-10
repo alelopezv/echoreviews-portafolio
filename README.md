@@ -110,7 +110,7 @@ que `Ana` y `ana` no puedan ser dos cuentas distintas.
 
 | Método | Endpoint | Acceso | Descripción |
 |---|---|---|---|
-| `GET` | `/api/reviews/` | Público | Reseñas aprobadas. Con `?q=` busca en el título, el texto y el nombre de la obra |
+| `GET` | `/api/reviews/` | Público | Reseñas aprobadas. Con `?q=` busca en el título, el texto, el nombre de la obra y las etiquetas |
 | `POST` | `/api/reviews/create/` | Autenticado | Crear una reseña |
 | `GET` | `/api/reviews/mine/` | Autenticado | Mis reseñas |
 | `GET` `PATCH` `DELETE` | `/api/reviews/<id>/` | Autenticado | Detalle, edición y borrado |
