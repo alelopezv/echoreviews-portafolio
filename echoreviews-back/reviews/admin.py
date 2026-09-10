@@ -76,6 +76,20 @@ class ReviewAdmin(admin.ModelAdmin):
     # decide bajo qué temas se archiva. Es el reparto de una revista.
     filter_horizontal = ("hashtags",)
 
+    class Media:
+        """Ojo con el nombre: esta clase es la forma que tiene Django de
+        declararle archivos estáticos a un ModelAdmin, y no tiene ninguna
+        relación con la app `media` de este proyecto. La coincidencia es de
+        Django, que eligió ese nombre mucho antes.
+
+        El script esconde el motivo de rechazo mientras el estado no sea
+        "rechazado". No se puede hacer desde Python: get_fields() decide qué
+        campos se dibujan cuando se arma la página, y acá el estado cambia
+        después, cuando el moderador toca el desplegable.
+        """
+
+        js = ("reviews/moderacion.js",)
+
     def save_model(self, request, obj, form, change):
         """Quien aprueba es quien está usando el admin.
 
@@ -91,12 +105,21 @@ class ReviewAdmin(admin.ModelAdmin):
             if obj.approved_at is None:
                 obj.approved_by = request.user
                 obj.approved_at = timezone.now()
-
-            # Si venía rechazada, el motivo ya no aplica.
-            obj.rejection_reason = ""
         else:
             obj.approved_by = None
             obj.approved_at = None
+
+        # El motivo pertenece al rechazo y a ningún otro estado.
+        #
+        # Antes esto vivía dentro de la rama de "approved", así que solo se
+        # limpiaba al aprobar. Una reseña rechazada y devuelta a la cola se
+        # quedaba con la explicación del rechazo anterior colgando: estado
+        # "pendiente" y, debajo, el motivo por el que se había rechazado.
+        # La API nunca lo permitió —ApproveReviewView lo vacía al aprobar y
+        # ReviewDetailView lo vacía cuando el autor corrige—, o sea que otra
+        # vez los dos caminos de moderación dejaban la base distinta.
+        if obj.status != "rejected":
+            obj.rejection_reason = ""
 
         super().save_model(request, obj, form, change)
 

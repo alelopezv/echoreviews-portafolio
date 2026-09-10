@@ -88,6 +88,45 @@ def test_el_admin_no_puede_firmar_la_aprobacion_a_nombre_de_otro(admin_de_resena
 
 
 @pytest.mark.django_db
+def test_devolver_una_resena_a_la_cola_borra_el_motivo(admin_de_resenas, usuario, obra, admin):
+    """Un motivo colgando de una reseña que ya no está rechazada miente.
+
+    El texto se limpiaba solo al aprobar, así que una reseña rechazada y
+    devuelta a "pendiente" se quedaba con la explicación del rechazo anterior:
+    el estado decía una cosa y el campo de al lado, otra.
+    """
+    resena = Review.objects.create(
+        user=usuario, media=obra, title="R", content="...", rating=3,
+        status="rejected", rejection_reason="Falta desarrollar la idea.",
+    )
+
+    resena.status = "pending"
+    admin_de_resenas.save_model(PeticionFalsa(admin), resena, form=None, change=True)
+
+    resena.refresh_from_db()
+    assert resena.rejection_reason == ""
+
+
+@pytest.mark.django_db
+def test_rechazar_conserva_el_motivo(admin_de_resenas, usuario, obra, admin):
+    """El caso contrario, que es el que se rompe si se limpia de más.
+
+    Sin este test, vaciar el motivo SIEMPRE pasaría la prueba de arriba y
+    dejaría todos los rechazos sin explicación.
+    """
+    resena = Review.objects.create(
+        user=usuario, media=obra, title="R", content="...", rating=3,
+    )
+
+    resena.status = "rejected"
+    resena.rejection_reason = "Desarrolla la comparación con el resto del disco."
+    admin_de_resenas.save_model(PeticionFalsa(admin), resena, form=None, change=True)
+
+    resena.refresh_from_db()
+    assert resena.rejection_reason == "Desarrolla la comparación con el resto del disco."
+
+
+@pytest.mark.django_db
 def test_rechazar_sin_motivo_no_pasa_la_validacion(usuario, obra):
     """La misma regla que exige la API, también acá."""
     resena = Review.objects.create(
