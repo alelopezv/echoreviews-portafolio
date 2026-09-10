@@ -13,6 +13,54 @@ El proyecto está dividido en dos partes:
 
 ---
 
+## 📸 Capturas
+
+![Portada de EchoReviews](docs/screenshots/portada.jpg)
+
+Las cifras de la portada no están escritas a mano: salen de contar lo que
+devuelve la API.
+
+<table>
+<tr>
+<td width="50%">
+<img src="docs/screenshots/resena.jpg" alt="Detalle de una reseña">
+<p><b>Una reseña.</b> La portada sale ya encuadrada porque el recorte se
+aplicó al archivo al subirlo, no al mostrarlo.</p>
+</td>
+<td width="50%">
+<img src="docs/screenshots/catalogo.jpg" alt="Catálogo de obras">
+<p><b>El catálogo.</b> Sin filtro se agrupa por tipo: un anime vertical junto
+a un disco cuadrado no es un catálogo, es un montón.</p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="docs/screenshots/escribir.jpg" alt="Formulario de reseña">
+<p><b>Escribir.</b> Si la obra no está en el catálogo se propone desde el
+mismo formulario, con su tipo y su sinopsis.</p>
+</td>
+<td width="50%">
+<img src="docs/screenshots/recorte.jpg" alt="Recorte de la portada">
+<p><b>El recorte.</b> El marco toma la forma del tipo de obra elegido:
+cuadrado para un disco, 2:3 para un anime o un videojuego.</p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="docs/screenshots/hashtags.jpg" alt="Reseñas de una etiqueta">
+<p><b>Las etiquetas.</b> Cada una tiene su página, y el buscador de la barra
+superior también mira dentro de ellas.</p>
+</td>
+<td width="50%">
+<img src="docs/screenshots/moderacion.png" alt="Moderación desde el admin de Django">
+<p><b>La moderación.</b> Los tres estados conviviendo. Un admin decide si algo
+se publica; reescribir el texto ajeno no es una opción que exista.</p>
+</td>
+</tr>
+</table>
+
+---
+
 ## 🚀 Tecnologías
 
 **Backend** · Django 5.2 · Django REST Framework · MySQL 8.4 · Docker Compose · JWT (SimpleJWT)
