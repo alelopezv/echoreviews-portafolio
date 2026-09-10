@@ -249,7 +249,7 @@ pendientes, verificación de tipos y build del frontend.
 Para correrlo en local:
 
 ```bash
-# Backend — 48 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+# Backend — 53 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
 cd echoreviews-back
 pip install -r requirements-dev.txt
 pytest
@@ -277,6 +277,13 @@ buscar no sea una puerta trasera para leer lo que el listado público esconde.
 Cada regla se comprueba además al revés, rompiéndola a propósito para ver si
 algún test se da cuenta. Un test que sigue en verde con el código roto no
 está cuidando nada.
+
+Hay cuatro que no miran el código sino los **datos de prueba**: que toda
+portada que nombra el seed esté versionada en `seed_assets/`, que ninguna
+reseña se quede sin obra, que el motivo de rechazo solo exista donde
+corresponde, y que el seed cubra los tres estados de moderación. Los dos
+primeros nacieron de errores reales que se descubrieron mirando el sitio con
+las imágenes rotas; ahora se descubren en la CI.
 
 ---
 
