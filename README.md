@@ -303,6 +303,12 @@ Proyecto de portafolio, en desarrollo activo. Trabajo pendiente conocido:
   principio no puede aprovechar el índice, así que la base recorre la tabla
   entera. Con este catálogo es instantáneo; a partir de cierto tamaño el
   siguiente paso sería búsqueda de texto completo.
+- **Rechazar una obra propuesta no exige motivo, y rechazar una reseña sí.**
+  `Review` tiene `rejection_reason` —lo piden la API, el formulario del admin
+  y un test—, pero `MediaSuggestion` no, así que quien propone una obra y se
+  la rechazan no se entera de por qué. Cerrar la asimetría no es solo agregar
+  el campo: haría falta una pantalla de «mis propuestas» donde el autor lo
+  lea, que hoy no existe. Queda anotado antes que resuelto a medias.
 
 ---
 
