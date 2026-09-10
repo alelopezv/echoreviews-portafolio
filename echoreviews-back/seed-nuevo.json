@@ -1,0 +1,937 @@
+[
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$YV6zyoAKZEu7tRHPOCJ5o5$LGYKrf1gU1iBioAfRp5J9jFA1HbRBDReFessBbglhBQ=",
+    "last_login": "2026-09-10T16:15:52.454Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "echoreviews@admin.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-04-10T04:19:20.276Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$bykVmKkJFIyhmZzhpSWepv$cdEn5nz/JgYJgkz/nFvhDGmG44FpcUJ01mJepZHvKvo=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "usuario1",
+    "first_name": "Usuario",
+    "last_name": "de prueba",
+    "email": "usuario@echoreviews.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-12T20:23:56Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$2ebzAEzkBSxkkT2i1qDy6q$wPqSN8V5bcKbmXxLrXnfPa2uB3BIg2vrJNl93bVFRis=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "martin01",
+    "first_name": "",
+    "last_name": "",
+    "email": "martin1989@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-09-08T16:36:30.172Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$eufwKrJ2Ens3BJjoesq3qe$Nl3yWGpc8GoU/HNHDOey/oPpexpkmE+TsYmaDajZcng=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "renata03",
+    "first_name": "Renata Astudillo",
+    "last_name": "",
+    "email": "renataas@echoreviews.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-09-10T14:49:19.106Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "media.media",
+  "pk": 1,
+  "fields": {
+    "title": "Shinsekai Yori",
+    "type": "anime",
+    "description": "Sitúa una historia 1000 años después de un fin del mundo, donde la telekinesis, telepatía y los poderes dios están encarnados en los seres humanos, pero no todo aquél tiene derecho a encarnarlo. ¿Qué misterios devela el pueblo en el cual todo se maneja en base a este poder?",
+    "image": "media/shinsekai-yori.jpg",
+    "crop_x": 0,
+    "crop_y": 0,
+    "crop_width": 0,
+    "crop_height": 0,
+    "created_at": "2026-04-10T04:24:28.570Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "media.media",
+  "pk": 2,
+  "fields": {
+    "title": "Steins;Gate",
+    "type": "anime",
+    "description": "Una serie de ciencia ficción sobre viajes en el tiempo y muy inspirada en la paradoja del Efecto Mariposa.",
+    "image": "media/steins-gate.jpg",
+    "crop_x": 0,
+    "crop_y": 0,
+    "crop_width": 0,
+    "crop_height": 0,
+    "created_at": "2026-04-14T19:46:23.649Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "media.media",
+  "pk": 3,
+  "fields": {
+    "title": "Princess Tutu",
+    "type": "anime",
+    "description": "Inspirada en el ballet y los cuentos de hadas, en particular en El patito feo y El lago de los cisnes , su historia sigue a una pata que se transforma en la mítica bailarina Princesa Tutu para salvar el corazón destrozado de un príncipe de cuento que ha cobrado vida.",
+    "image": "media/princess-tutu.jpg",
+    "crop_x": 0,
+    "crop_y": 0,
+    "crop_width": 0,
+    "crop_height": 0,
+    "created_at": "2026-04-16T01:10:13.333Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "media.media",
+  "pk": 4,
+  "fields": {
+    "title": "Kaiba",
+    "type": "anime",
+    "description": "jdfkajfafafsaf asasfasgas",
+    "image": "media/kaiba.jpg",
+    "crop_x": 11,
+    "crop_y": 0,
+    "crop_width": 267,
+    "crop_height": 400,
+    "created_at": "2026-09-04T16:44:26.524Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "media.media",
+  "pk": 5,
+  "fields": {
+    "title": "Beach House - Bloom",
+    "type": "music",
+    "description": "Bloom es la continuación natural del exquisito dream pop de Teen Dream, el disco que llevó a Beach House más allá de los confines de la escena indie. Las etéreas melodías son tan hipnóticas como siempre y las guitarras dibujan paisajes de sutil pero insistente pulso melódico. Cuando el dúo se devela en “On the Sea” hasta dejar la canción en su mínima expresión con la voz evanescente de Victoria Legrand, los resultados son simplemente asombrosos.",
+    "image": "media/beach-house-bloom.jpg",
+    "crop_x": 117,
+    "crop_y": 0,
+    "crop_width": 467,
+    "crop_height": 700,
+    "created_at": "2026-09-08T15:26:35.084Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "media.media",
+  "pk": 6,
+  "fields": {
+    "title": "NieR: Automata",
+    "type": "game",
+    "description": "NieR:Automata trata sobre una guerra en un planeta Tierra destruido, donde los restos de la humanidad luchan contra máquinas extraterrestres mediante androides de combate.",
+    "image": "media/nier-automata.jpg",
+    "crop_x": 0,
+    "crop_y": 0,
+    "crop_width": 533,
+    "crop_height": 800,
+    "created_at": "2026-09-08T20:02:05.363Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "media.media",
+  "pk": 7,
+  "fields": {
+    "title": "Chihayafuru",
+    "type": "anime",
+    "description": "Chihayafuru sigue a Chihaya Ayase, una joven que deja atrás el sueño de ver a su hermana ser modelo para descubrir su propia pasión: el karuta, un juego de cartas tradicional japonés. Junto a sus amigos Arata y Taichi, lucha por convertirse en la mejor jugadora de Japón.",
+    "image": "media/chihayafuru.jpg",
+    "crop_x": 31,
+    "crop_y": 0,
+    "crop_width": 937,
+    "crop_height": 1406,
+    "created_at": "2026-09-09T16:20:00.800Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "media.media",
+  "pk": 8,
+  "fields": {
+    "title": "Galaxie 500 - On Fire",
+    "type": "music",
+    "description": "On Fire (1989), el segundo disco del trío Galaxie 500, es una joya de sonido lento, frágil y espacial. Esta reseña inventada imagina el álbum como una fogata que se apaga en medio de la noche bajo la lluvia.",
+    "image": "media/galaxie-500-on-fire.jpg",
+    "crop_x": 0,
+    "crop_y": 0,
+    "crop_width": 0,
+    "crop_height": 0,
+    "created_at": "2026-09-10T14:54:08.792Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "media.mediasuggestion",
+  "pk": 1,
+  "fields": {
+    "title": "Kaiba",
+    "type": "anime",
+    "description": "jdfkajfafafsaf asasfasgas",
+    "image": "media/MV5BYzZhMjU2NGItMWRjMC00YjE2LTgwNGItNWJiNzk4NmI2NmU5XkEyXkFqcGc._V1_.jpg",
+    "crop_x": 11,
+    "crop_y": 0,
+    "crop_width": 267,
+    "crop_height": 400,
+    "created_by": 1,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_media": 4,
+    "approved_at": "2026-09-04T16:44:26.553Z",
+    "created_at": "2026-09-04T00:56:46.613Z"
+  }
+},
+{
+  "model": "media.mediasuggestion",
+  "pk": 2,
+  "fields": {
+    "title": "Beach House - Bloom",
+    "type": "music",
+    "description": "Bloom es la continuación natural del exquisito dream pop de Teen Dream, el disco que llevó a Beach House más allá de los confines de la escena indie. Las etéreas melodías son tan hipnóticas como siempre y las guitarras dibujan paisajes de sutil pero insistente pulso melódico. Cuando el dúo se devela en “On the Sea” hasta dejar la canción en su mínima expresión con la voz evanescente de Victoria Legrand, los resultados son simplemente asombrosos.",
+    "image": "media/a3016018801_16.jpg",
+    "crop_x": 117,
+    "crop_y": 0,
+    "crop_width": 467,
+    "crop_height": 700,
+    "created_by": 1,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_media": 5,
+    "approved_at": "2026-09-08T15:26:35.113Z",
+    "created_at": "2026-09-08T15:19:16.623Z"
+  }
+},
+{
+  "model": "media.mediasuggestion",
+  "pk": 3,
+  "fields": {
+    "title": "NieR: Automata",
+    "type": "game",
+    "description": "NieR:Automata trata sobre una guerra en un planeta Tierra destruido, donde los restos de la humanidad luchan contra máquinas extraterrestres mediante androides de combate.",
+    "image": "media/3643384-nier-automata-become-as-gods-edition-xbox-one-front-cover.jpg",
+    "crop_x": 0,
+    "crop_y": 0,
+    "crop_width": 533,
+    "crop_height": 800,
+    "created_by": 3,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_media": 6,
+    "approved_at": "2026-09-08T20:02:05.376Z",
+    "created_at": "2026-09-08T20:01:28.995Z"
+  }
+},
+{
+  "model": "media.mediasuggestion",
+  "pk": 4,
+  "fields": {
+    "title": "Chihayafuru",
+    "type": "anime",
+    "description": "Chihayafuru sigue a Chihaya Ayase, una joven que deja atrás el sueño de ver a su hermana ser modelo para descubrir su propia pasión: el karuta, un juego de cartas tradicional japonés. Junto a sus amigos Arata y Taichi, lucha por convertirse en la mejor jugadora de Japón.",
+    "image": "media/chihayafuru.jpg",
+    "crop_x": 31,
+    "crop_y": 0,
+    "crop_width": 937,
+    "crop_height": 1406,
+    "created_by": 1,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_media": 7,
+    "approved_at": "2026-09-09T16:20:00.817Z",
+    "created_at": "2026-09-09T16:18:29.964Z"
+  }
+},
+{
+  "model": "media.mediasuggestion",
+  "pk": 5,
+  "fields": {
+    "title": "Galaxie 500 - On Fire",
+    "type": "anime",
+    "description": "On Fire (1989), el segundo disco del trío Galaxie 500, es una joya de sonido lento, frágil y espacial. Esta reseña inventada imagina el álbum como una fogata que se apaga en medio de la noche bajo la lluvia.",
+    "image": "media/galaxie-500-on-fire.jpg",
+    "crop_x": 180,
+    "crop_y": 0,
+    "crop_width": 765,
+    "crop_height": 1147,
+    "created_by": 4,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_media": 8,
+    "approved_at": "2026-09-10T14:54:08.810Z",
+    "created_at": "2026-09-10T14:53:23.944Z"
+  }
+},
+{
+  "model": "reviews.review",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "media": 1,
+    "media_suggestion": null,
+    "title": "El precio de un mundo tranquilo",
+    "content": "Hay series que empiezan como un recuerdo de infancia y terminan como una acusación. Shinsekai Yori es de ésas. Sus primeros episodios transcurren en un pueblo que parece salido de una acuarela: campos, ríos, chicos que juegan con la mente y adultos que sonríen demasiado. Pasan varios capítulos antes de que uno entienda que esa quietud no es paz, sino administración.\n\nLo que la serie hace mejor no es revelar su secreto, sino enseñar cómo se sostiene. Cada respuesta que consigue el grupo protagonista viene con una pregunta peor, y ninguna de las dos es tranquilizadora. La violencia acá no irrumpe: ya estaba, ordenada y con horario, sostenida por gente que se convenció de que era el único orden posible.\n\nNo es una serie apurada, y ésa es a la vez su mayor virtud y su barrera de entrada. Le dedica episodios enteros a construir un mundo antes de romperlo, porque sin ese mundo la ruptura no dolería. Cuando llega el último tramo uno ya no está viendo ciencia ficción: está viendo cómo una sociedad decide quién cuenta como persona.",
+    "rating": 4,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_by": 1,
+    "approved_at": null,
+    "created_at": "2026-04-10T04:28:29.197Z",
+    "updated_at": "2026-09-09T01:49:56.436Z",
+    "hashtags": [
+      1,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reviews.review",
+  "pk": 2,
+  "fields": {
+    "user": 1,
+    "media": 3,
+    "media_suggestion": null,
+    "title": "El cuento discute con sus personajes",
+    "content": "Cuesta explicar Princess Tutu sin que suene ridícula. Una pata se convierte en niña, la niña se convierte en bailarina y baila para devolverle a un príncipe los pedazos de su corazón. Dicho así, uno esperaría media hora de azúcar. Lo que hay debajo es una de las cosas más raras y mejor construidas que dio el anime.\n\nLa serie está organizada como una pieza musical, con actos y movimientos, y la música clásica no es decorado: la coreografía y la partitura llevan la narración cuando los diálogos se callan. Lo que empieza como cuento de hadas termina siendo una discusión con el género. Los personajes descubren que alguien escribió sus papeles de antemano, y la pregunta deja de ser cómo termina la historia para pasar a ser quién tiene derecho a escribirla.\n\nAhí está su golpe: la protagonista no gana rompiendo el cuento a la fuerza, sino insistiendo en ser algo que el cuento no había previsto. Es una serie sobre el destino narrativo hecha con tutús y patos, y funciona porque nunca se ríe de sí misma para protegerse.",
+    "rating": 5,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_by": 1,
+    "approved_at": null,
+    "created_at": "2026-04-16T01:12:51.782Z",
+    "updated_at": "2026-09-09T01:48:52.166Z",
+    "hashtags": [
+      3,
+      5,
+      7,
+      8
+    ]
+  }
+},
+{
+  "model": "reviews.review",
+  "pk": 3,
+  "fields": {
+    "user": 1,
+    "media": 2,
+    "media_suggestion": null,
+    "title": "La primera hora es una trampa",
+    "content": "Durante los primeros capítulos, Steins;Gate parece una comedia sobre un tipo insoportable. Okabe le grita al teléfono a un interlocutor que no existe, se autoproclama científico loco y arrastra a sus amigos por un Akihabara de calor pegajoso. Uno mira eso y piensa que se equivocó de serie.\n\nNo se equivocó: se equivocó de tono, y a propósito. Toda esa primera hora está construida para que uno se encariñe con un grupo de personas que hacen tonterías en un departamento sobre una tienda de electrónica. Cuando la serie decide cobrar esa deuda, el vuelco no funciona porque sea sorprendente, sino porque uno ya sabe exactamente qué se está perdiendo.\n\nDe ahí en adelante es una de las mejores historias sobre el costo de deshacer errores que se hayan animado. El viaje en el tiempo deja de ser un juguete de guion y pasa a ser una condena: cada intento de arreglar algo consume un poco más a quien lo intenta. La ciencia ficción es la excusa; lo que la serie discute es hasta dónde estarías dispuesto a llegar, y qué averiguarías de vos en el camino.",
+    "rating": 4,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_by": null,
+    "approved_at": null,
+    "created_at": "2026-04-20T01:19:20.703Z",
+    "updated_at": "2026-09-09T01:48:22.232Z",
+    "hashtags": [
+      2,
+      3,
+      6,
+      7
+    ]
+  }
+},
+{
+  "model": "reviews.review",
+  "pk": 4,
+  "fields": {
+    "user": 1,
+    "media": 4,
+    "media_suggestion": null,
+    "title": "La memoria también tiene precio",
+    "content": "Kaiba se ve como un dibujo animado para chicos y trata sobre la explotación. Ese contraste no es un chiste ni un truco: es el argumento. Yuasa dibuja cabezas redondas y colores planos para contar un mundo donde los recuerdos se guardan en chips, se compran, se editan y se roban, y donde el cuerpo es un envase que se descarta cuando conviene.\n\nEl tramo central abandona al protagonista y se dedica a historias sueltas de gente cualquiera. Es la mejor decisión de la serie. En vez de explicarte el sistema, te lo muestra desde abajo: quien vende sus años buenos para comer, quien compra un cuerpo más joven, quien conserva un recuerdo falso porque el verdadero no se aguanta.\n\nEs breve, no da explicaciones de más y confía en que uno va a atar los cabos. Y deja una pregunta incómoda de las que no se responden solas: si todo lo que recordás se puede editar, ¿qué te queda que sea tuyo?",
+    "rating": 5,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_by": 1,
+    "approved_at": null,
+    "created_at": "2026-09-04T00:56:46.632Z",
+    "updated_at": "2026-09-09T01:47:45.567Z",
+    "hashtags": []
+  }
+},
+{
+  "model": "reviews.review",
+  "pk": 5,
+  "fields": {
+    "user": 1,
+    "media": 5,
+    "media_suggestion": null,
+    "title": "Un disco que no tiene apuro",
+    "content": "Bloom no busca sorprender a nadie, y ahí está su decisión más firme. Beach House ya había encontrado su forma en el disco anterior, y en vez de escaparse de ella la lleva hasta el final: órgano, guitarras con reverberación larga, batería que marca el paso sin empujar, y la voz puesta como un instrumento más y no como el centro.\n\nLas canciones se arman por acumulación. Empiezan con dos o tres elementos y van sumando capas hasta que uno se da cuenta, tarde, de que lo que sonaba mínimo terminó siendo enorme. El tema que abre el disco explica ese método en cuatro minutos, y el resto lo repite con paciencia de artesano.\n\nLa objeción que se le hace es entendible: es más de lo mismo. Yo lo escucho al revés. Hay discos que buscan una idea nueva y hay discos que agotan una idea buena, y éste pertenece al segundo grupo sin pedir disculpas. No es para poner de fondo mientras hacés otra cosa; es para cuando querés que la tarde dure un poco más.",
+    "rating": 4,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_by": 1,
+    "approved_at": null,
+    "created_at": "2026-09-08T15:19:16.742Z",
+    "updated_at": "2026-09-09T01:46:37.285Z",
+    "hashtags": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  }
+},
+{
+  "model": "reviews.review",
+  "pk": 6,
+  "fields": {
+    "user": 3,
+    "media": 6,
+    "media_suggestion": null,
+    "title": "No termina cuando dice que termina",
+    "content": "Automata pide algo que casi ningún juego se anima a pedir: que lo termines y vuelvas a empezar. Y no como un modo difícil ni como contenido extra — la segunda vuelta cuenta lo mismo desde otros ojos, y lo que era una escena de acción pasa a ser otra cosa completamente. Recién en la tercera el juego enseña de qué venía hablando.\n\nComo juego de acción es excelente y podría haberse quedado ahí. Las peleas son rápidas, legibles y satisfactorias, y la música convierte cualquier pasillo vacío en un lugar con peso. Pero esa solidez funciona como carnada: cuanto más cómodo estás con el sistema, más incómodo se vuelve lo que el juego te va contando sobre por qué estás peleando.\n\nEl final que todos mencionan se lo ganó, y no por espectacular. Es el único que conozco que convierte terminar un juego en un gesto hacia otra persona, y que te pregunta, de verdad y con consecuencias, si estás dispuesto a renunciar a algo tuyo por alguien a quien no vas a conocer nunca. Se puede discutir casi todo del juego menos eso.",
+    "rating": 4,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_by": 1,
+    "approved_at": null,
+    "created_at": "2026-09-08T20:01:29.048Z",
+    "updated_at": "2026-09-09T01:45:45.650Z",
+    "hashtags": [
+      6,
+      7,
+      15
+    ]
+  }
+},
+{
+  "model": "reviews.review",
+  "pk": 7,
+  "fields": {
+    "user": 1,
+    "media": 7,
+    "media_suggestion": null,
+    "title": "Poesía, deporte y pasión",
+    "content": "Es difícil explicarle a alguien que un anime sobre un juego de cartas tradicional japonés basado en poesía clásica puede ser una de las experiencias más intensas, emocionantes y emocionalmente devastadoras de la animación moderna. Y, sin embargo, Chihayafuru lo logra con una maestría inigualable.La historia sigue a Chihaya Ayase, una joven cuya única ambición inicial es ver triunfar a su hermana modelo, hasta que conoce a Arata Wataya. Arata le introduce el mundo del karuta competitivo, un juego que requiere una memoria fotográfica, reflejos sobrehumanos y una resistencia física inesperada. Junto a su amigo de la infancia, Taichi Mashima, el trío queda unido por un lazo inquebrantable que la distancia y los años pondrán a prueba.Lo que hace que esta serie sea brillante es su equilibrio perfecto entre el drama deportivo y el romance de crecimiento (coming-of-age). Studio Madhouse (y posteriormente Studio Voln) ofrece una animación fluida donde cada golpe a las cartas se siente como el impacto de un combate de boxeo. La música clásica mezclada con elementos tradicionales eleva la tensión en cada torneo, haciendo que el espectador contenga la respiración junto a los personajes.Sin embargo, el verdadero corazón de Chihayafuru son sus personajes. Nadie se queda atrás. Desde los rivales más formidables hasta los miembros del club escolar que apenas están aprendiendo las reglas, todos reciben un trasfondo rico y motivaciones realistas. El triángulo amoroso entre Chihaya, Taichi y Arata es uno de los mejor cocinados de la demografía josei, evitando los clichés baratos y enfocándose en el respeto mutuo y el dolor del crecimiento no correspondido.Veredicto: Chihayafuru no es solo un anime sobre cartas; es una carta de amor a la dedicación, la amistad y la dolorosa belleza de perseguir un sueño que parece inalcanzable. Una obra perfecta tanto para los amantes del spokon (anime de deportes) como para quienes buscan una historia humana profundamente conmovedora.",
+    "rating": 5,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_by": 1,
+    "approved_at": "2026-09-10T16:24:41.856Z",
+    "created_at": "2026-09-09T16:18:30.041Z",
+    "updated_at": "2026-09-10T16:24:41.856Z",
+    "hashtags": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      21
+    ]
+  }
+},
+{
+  "model": "reviews.review",
+  "pk": 8,
+  "fields": {
+    "user": 4,
+    "media": 8,
+    "media_suggestion": null,
+    "title": "El arte de ver quemarse el invierno",
+    "content": "Hay discos que no se escuchan; se habitan. Cuando Galaxie 500 lanzó On Fire en 1989, el mundo de la música independiente estaba obsesionado con el ruido sónico y la furia distorsionada del grunge naciente. Sin embargo, este trío de Boston decidió hacer exactamente lo contrario: bajar la velocidad, apagar las luces y dejar que el tiempo transcurriera más lento. El resultado no fue un disco de rock; fue un refugio contra la prisa del mundo moderno.El título del álbum es una hermosa ironía. Aquí no hay llamas destructivas ni pasiones descontroladas. El fuego de On Fire es el de una fogata que se extingue lentamente bajo una llovizna de otoño. Las canciones no avanzan, flotan. La sección rítmica de Naomi Yang en el bajo y Damon Krukowski en la batería no busca golpear el pecho del oyente, sino mecerlo en una hipnosis constante. Sobre esa base minimalista, la guitarra de Dean Wareham lanza destellos largos y melancólicos, como faros de autos cruzando una carretera desierta a las tres de la mañana.El gran triunfo de este trabajo radica en su fragilidad. La voz de Wareham, que a menudo roza el desafío de estar desafinada, transmite una vulnerabilidad tan honesta que resulta casi dolorosa. Canciones como \"Blue Thunder\" o el hipnótico cover de \"Ceremony\" (original de Joy Division/New Order) suenan como si la banda estuviera tocando solo para ellos mismos en una habitación vacía, sin importarles si el resto del planeta sigue girando. On Fire inventó un espacio donde la tristeza no es un peso, sino un lugar cálido donde quedarse a vivir. Treinta años después, su humo azul sigue flotando intacto.",
+    "rating": 4,
+    "status": "approved",
+    "rejection_reason": "",
+    "approved_by": 1,
+    "approved_at": "2026-09-10T16:24:56.043Z",
+    "created_at": "2026-09-10T14:53:23.983Z",
+    "updated_at": "2026-09-10T16:24:56.043Z",
+    "hashtags": [
+      14,
+      22,
+      23
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 1,
+  "fields": {
+    "name": "shinsekaiyori",
+    "created_at": "2026-04-10T04:24:43.225Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 2,
+  "fields": {
+    "name": "steins;gate",
+    "created_at": "2026-04-16T01:22:57.922Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 3,
+  "fields": {
+    "name": "anime",
+    "created_at": "2026-04-16T01:23:13.731Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 4,
+  "fields": {
+    "name": "princesstutu",
+    "created_at": "2026-04-16T01:23:22.515Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 5,
+  "fields": {
+    "name": "mahoushoujo",
+    "created_at": "2026-04-16T01:23:29.332Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 6,
+  "fields": {
+    "name": "sci-fi",
+    "created_at": "2026-04-16T01:23:35.819Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 7,
+  "fields": {
+    "name": "psychological",
+    "created_at": "2026-04-16T01:23:58.483Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 8,
+  "fields": {
+    "name": "lowfantasy",
+    "created_at": "2026-09-08T02:35:19.920Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 9,
+  "fields": {
+    "name": "beachhouse",
+    "created_at": "2026-09-08T15:25:46.905Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 10,
+  "fields": {
+    "name": "2012",
+    "created_at": "2026-09-08T15:25:46.950Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 11,
+  "fields": {
+    "name": "etherealwave",
+    "created_at": "2026-09-08T15:25:46.977Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 12,
+  "fields": {
+    "name": "neo-psychedelia",
+    "created_at": "2026-09-08T15:25:46.999Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 13,
+  "fields": {
+    "name": "indiepop",
+    "created_at": "2026-09-08T15:25:47.019Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 14,
+  "fields": {
+    "name": "dreampop",
+    "created_at": "2026-09-08T15:25:47.037Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 15,
+  "fields": {
+    "name": "videojuego",
+    "created_at": "2026-09-08T20:02:21.735Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 16,
+  "fields": {
+    "name": "2011",
+    "created_at": "2026-09-09T16:20:15.601Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 17,
+  "fields": {
+    "name": "strategygame",
+    "created_at": "2026-09-09T16:20:15.621Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 18,
+  "fields": {
+    "name": "sports",
+    "created_at": "2026-09-09T16:20:15.638Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 19,
+  "fields": {
+    "name": "romance",
+    "created_at": "2026-09-09T16:20:15.657Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 20,
+  "fields": {
+    "name": "spokon",
+    "created_at": "2026-09-09T16:20:15.674Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 21,
+  "fields": {
+    "name": "jousei",
+    "created_at": "2026-09-09T16:20:15.690Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 22,
+  "fields": {
+    "name": "shoegaze",
+    "created_at": "2026-09-10T14:53:52.139Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtag",
+  "pk": 23,
+  "fields": {
+    "name": "galaxie500",
+    "created_at": "2026-09-10T14:53:52.157Z",
+    "status": "approved"
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 1,
+  "fields": {
+    "name": "lowfantasy",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 8,
+    "approved_at": "2026-09-08T02:35:19.952Z",
+    "created_at": "2026-09-08T02:35:05.515Z",
+    "reviews": [
+      2
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 2,
+  "fields": {
+    "name": "dreampop",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 14,
+    "approved_at": "2026-09-08T15:25:47.051Z",
+    "created_at": "2026-09-08T15:19:16.658Z",
+    "reviews": [
+      5
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 3,
+  "fields": {
+    "name": "indiepop",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 13,
+    "approved_at": "2026-09-08T15:25:47.031Z",
+    "created_at": "2026-09-08T15:19:16.677Z",
+    "reviews": [
+      5
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 4,
+  "fields": {
+    "name": "neo-psychedelia",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 12,
+    "approved_at": "2026-09-08T15:25:47.013Z",
+    "created_at": "2026-09-08T15:19:16.696Z",
+    "reviews": [
+      5
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 5,
+  "fields": {
+    "name": "etherealwave",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 11,
+    "approved_at": "2026-09-08T15:25:46.993Z",
+    "created_at": "2026-09-08T15:19:16.714Z",
+    "reviews": [
+      5
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 6,
+  "fields": {
+    "name": "2012",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 10,
+    "approved_at": "2026-09-08T15:25:46.967Z",
+    "created_at": "2026-09-08T15:19:16.724Z",
+    "reviews": [
+      5
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 7,
+  "fields": {
+    "name": "beachhouse",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 9,
+    "approved_at": "2026-09-08T15:25:46.941Z",
+    "created_at": "2026-09-08T15:19:16.734Z",
+    "reviews": [
+      5
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 8,
+  "fields": {
+    "name": "videojuego",
+    "created_by": 3,
+    "status": "approved",
+    "approved_hashtag": 15,
+    "approved_at": "2026-09-08T20:02:21.748Z",
+    "created_at": "2026-09-08T20:01:29.026Z",
+    "reviews": [
+      6
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 9,
+  "fields": {
+    "name": "jousei",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 21,
+    "approved_at": "2026-09-09T16:20:15.711Z",
+    "created_at": "2026-09-09T16:18:29.998Z",
+    "reviews": [
+      7
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 10,
+  "fields": {
+    "name": "spokon",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 20,
+    "approved_at": "2026-09-09T16:20:15.684Z",
+    "created_at": "2026-09-09T16:18:30.006Z",
+    "reviews": [
+      7
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 11,
+  "fields": {
+    "name": "romance",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 19,
+    "approved_at": "2026-09-09T16:20:15.667Z",
+    "created_at": "2026-09-09T16:18:30.015Z",
+    "reviews": [
+      7
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 12,
+  "fields": {
+    "name": "sports",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 18,
+    "approved_at": "2026-09-09T16:20:15.652Z",
+    "created_at": "2026-09-09T16:18:30.021Z",
+    "reviews": [
+      7
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 13,
+  "fields": {
+    "name": "strategygame",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 17,
+    "approved_at": "2026-09-09T16:20:15.632Z",
+    "created_at": "2026-09-09T16:18:30.028Z",
+    "reviews": [
+      7
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 14,
+  "fields": {
+    "name": "2011",
+    "created_by": 1,
+    "status": "approved",
+    "approved_hashtag": 16,
+    "approved_at": "2026-09-09T16:20:15.615Z",
+    "created_at": "2026-09-09T16:18:30.036Z",
+    "reviews": [
+      7
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 15,
+  "fields": {
+    "name": "galaxie500",
+    "created_by": 4,
+    "status": "approved",
+    "approved_hashtag": 23,
+    "approved_at": "2026-09-10T14:53:52.167Z",
+    "created_at": "2026-09-10T14:53:23.958Z",
+    "reviews": [
+      8
+    ]
+  }
+},
+{
+  "model": "hashtags.hashtagsuggestion",
+  "pk": 16,
+  "fields": {
+    "name": "shoegaze",
+    "created_by": 4,
+    "status": "approved",
+    "approved_hashtag": 22,
+    "approved_at": "2026-09-10T14:53:52.150Z",
+    "created_at": "2026-09-10T14:53:23.976Z",
+    "reviews": [
+      8
+    ]
+  }
+}
+]
