@@ -249,7 +249,7 @@ pendientes, verificación de tipos y build del frontend.
 Para correrlo en local:
 
 ```bash
-# Backend — 48 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+# Backend — 53 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
 cd echoreviews-back
 pip install -r requirements-dev.txt
 pytest
@@ -278,6 +278,13 @@ Cada regla se comprueba además al revés, rompiéndola a propósito para ver si
 algún test se da cuenta. Un test que sigue en verde con el código roto no
 está cuidando nada.
 
+Hay cuatro que no miran el código sino los **datos de prueba**: que toda
+portada que nombra el seed esté versionada en `seed_assets/`, que ninguna
+reseña se quede sin obra, que el motivo de rechazo solo exista donde
+corresponde, y que el seed cubra los tres estados de moderación. Los dos
+primeros nacieron de errores reales que se descubrieron mirando el sitio con
+las imágenes rotas; ahora se descubren en la CI.
+
 ---
 
 ## ⚠️ Estado del proyecto
@@ -296,6 +303,12 @@ Proyecto de portafolio, en desarrollo activo. Trabajo pendiente conocido:
   principio no puede aprovechar el índice, así que la base recorre la tabla
   entera. Con este catálogo es instantáneo; a partir de cierto tamaño el
   siguiente paso sería búsqueda de texto completo.
+- **Rechazar una obra propuesta no exige motivo, y rechazar una reseña sí.**
+  `Review` tiene `rejection_reason` —lo piden la API, el formulario del admin
+  y un test—, pero `MediaSuggestion` no, así que quien propone una obra y se
+  la rechazan no se entera de por qué. Cerrar la asimetría no es solo agregar
+  el campo: haría falta una pantalla de «mis propuestas» donde el autor lo
+  lea, que hoy no existe. Queda anotado antes que resuelto a medias.
 
 ---
 
