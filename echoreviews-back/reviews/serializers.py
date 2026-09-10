@@ -1,8 +1,14 @@
+from PIL import Image
 from rest_framework import serializers
 
 from media.models import MediaSuggestion, TYPE_CHOICES
 from .models import Review
 from hashtags.models import Hashtag
+
+# Lado más corto que se acepta en una portada. El catálogo la muestra a unos
+# 240 px y la ficha de la obra a unos 420, así que por debajo de esto se ve
+# pixelada en todas partes.
+LADO_MINIMO_PORTADA = 400
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -122,6 +128,41 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
             "media_title", "media_type", "media_description",
             "image", "crop_x", "crop_y", "crop_width", "crop_height",
         ]
+
+    def validate_image(self, archivo):
+        """Una portada minúscula arruina la ficha de la obra para siempre.
+
+        La imagen no le pertenece a esta reseña: es de la obra, y la comparten
+        todas las reseñas que hablen de ella. Una portada de 80 px se ve
+        pixelada en el catálogo, en la tarjeta y en el detalle, y para
+        cambiarla hay que entrar al admin y subir otra. Sale mucho más barato
+        no dejarla entrar.
+
+        Se rechaza acá y no en `recortar_portada` a propósito: esto es una
+        regla sobre lo que se acepta, y el lugar de eso es la validación, donde
+        el usuario recibe un 400 con el motivo. Una función que trata imágenes
+        no debería decidir cuáles son aceptables.
+        """
+        archivo.seek(0)
+        try:
+            with Image.open(archivo) as imagen:
+                ancho, alto = imagen.size
+        except Exception:
+            # Que el archivo no sea una imagen legible ya lo dice ImageField
+            # con su propio mensaje; acá no hay nada que agregar.
+            return archivo
+        finally:
+            # El archivo lo vuelve a leer recortar_portada más adelante, así
+            # que se devuelve al principio pase lo que pase.
+            archivo.seek(0)
+
+        if min(ancho, alto) < LADO_MINIMO_PORTADA:
+            raise serializers.ValidationError(
+                f"La portada mide {ancho}×{alto} px y se vería pixelada. "
+                f"Su lado más corto debe tener al menos {LADO_MINIMO_PORTADA} px."
+            )
+
+        return archivo
 
     def validate(self, attrs):
         """Toda reseña habla de una obra, y toda obra tiene portada y descripción.

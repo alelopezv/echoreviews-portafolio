@@ -234,6 +234,59 @@ def test_una_obra_nueva_incompleta_se_rechaza(api, usuario):
     assert Review.objects.count() == 0
 
 
+def _portada(ancho, alto):
+    """Una imagen real del tamaño pedido."""
+    import io
+    from PIL import Image
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (ancho, alto), "teal").save(buffer, format="JPEG")
+    return SimpleUploadedFile("portada.jpg", buffer.getvalue(), content_type="image/jpeg")
+
+
+@pytest.mark.django_db
+def test_una_portada_diminuta_no_entra_al_catalogo(api, usuario):
+    """Y el 400 dice cuánto mide y cuánto debería medir.
+
+    La portada la comparten todas las reseñas de esa obra, así que dejarla
+    entrar pixelada arruina el catálogo para todo el mundo y solo se arregla
+    desde el admin. Es más barato no aceptarla.
+    """
+    api.force_authenticate(user=usuario)
+
+    respuesta = api.post("/api/reviews/create/", {
+        "title": "R", "content": "...", "rating": 4,
+        "media_title": "Perfect Blue", "media_type": "anime",
+        "media_description": "Una actriz y su reflejo.",
+        "image": _portada(120, 180),
+    })
+
+    assert respuesta.status_code == 400
+    assert "120×180" in respuesta.json()["image"][0]
+    assert "400" in respuesta.json()["image"][0]
+    assert Review.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_una_portada_del_tamano_justo_si_entra(api, usuario):
+    """El límite es un mínimo, no un rechazo de todo lo que no sea enorme.
+
+    Sin este test, subir el mínimo a cualquier número dejaría el otro test en
+    verde y el formulario rechazando portadas perfectamente usables.
+    """
+    api.force_authenticate(user=usuario)
+
+    respuesta = api.post("/api/reviews/create/", {
+        "title": "R", "content": "...", "rating": 4,
+        "media_title": "Perfect Blue", "media_type": "anime",
+        "media_description": "Una actriz y su reflejo.",
+        "image": _portada(400, 600),
+    })
+
+    assert respuesta.status_code == 201
+
+
 # --------------------------------------------------------------------------
 # 5. Aprobar una propuesta reengancha TODAS sus reseñas
 # --------------------------------------------------------------------------
