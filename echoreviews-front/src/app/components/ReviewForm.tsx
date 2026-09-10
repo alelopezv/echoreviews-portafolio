@@ -21,7 +21,13 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
   const [mediaId, setMediaId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [mediaTitle, setMediaTitle] = useState("");
-  const [mediaType, setMediaType] = useState<MediaType>("anime");
+  // Sin valor por defecto, a propósito. Antes empezaba en "anime", y como el
+  // tipo decide la forma del recorte, subir la portada de un disco sin tocar
+  // el desplegable la recortaba 2:3 en el servidor —para siempre, porque el
+  // recorte se aplica al archivo— y después el sitio la mostraba dentro de un
+  // marco cuadrado, recortándola por segunda vez. Elegir mal era gratis y no
+  // se notaba hasta ver la obra publicada.
+  const [mediaType, setMediaType] = useState<MediaType | "">("");
   const [cropData, setCropData] = useState<Area | null>(null);
   const [mediaDescription, setMediaDescription] = useState("");
 
@@ -33,6 +39,19 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
   const [hashtagsElegidos, setHashtagsElegidos] = useState<number[]>([]);
   const [nuevosHashtags, setNuevosHashtags] = useState<string[]>([]);
   const [entradaHashtag, setEntradaHashtag] = useState("");
+
+  // Cambiar el tipo de obra cambia la forma del recorte: un disco es cuadrado
+  // y un anime o un videojuego son 2:3. Un recorte confirmado con la forma
+  // anterior deja de valer.
+  //
+  // Y lo peor era que no se veía: al cambiar el tipo, el marco en pantalla se
+  // redibujaba con la forma nueva mientras cropData seguía guardando la vieja.
+  // O sea que corregir el tipo parecía arreglar el problema y en realidad
+  // enviaba igual el recorte equivocado. cropData solo se limpiaba al elegir
+  // otro archivo, que es el otro momento en que deja de tener sentido.
+  useEffect(() => {
+    setCropData(null);
+  }, [mediaType]);
 
   useEffect(() => {
     api
@@ -215,9 +234,10 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
               // afirmación es honesta porque las opciones se generan de
               // TIPOS_DE_OBRA, que está tipada: no hay forma de que llegue
               // un valor que no esté en la unión.
-              onChange={(e) => setMediaType(e.target.value as MediaType)}
+              onChange={(e) => setMediaType(e.target.value as MediaType | "")}
               className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white"
             >
+              <option value="">¿Qué tipo de obra es?</option>
               {TIPOS_DE_OBRA.map(({ valor, etiqueta }) => (
                 <option key={valor} value={valor}>
                   {etiqueta}
@@ -391,7 +411,12 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
             </span>
           </div>
 
-          {preview && (
+          {/* El recortador no aparece hasta saber qué tipo de obra es, porque
+              el tipo ES la forma del marco. Dibujarlo antes obligaría a elegir
+              una forma por defecto, que es exactamente de donde salía el
+              problema. Dentro del && TypeScript ya sabe que mediaType no es la
+              cadena vacía, así que indexar RELACION_DE_ASPECTO es seguro. */}
+          {preview && mediaType && (
             <div className="mt-4">
               <MediaPosterEditor
                 image={preview}
@@ -405,6 +430,13 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
               )}
             </div>
           )}
+
+          {preview && !mediaType && (
+            <p className="text-xs text-amber-400 mt-3">
+              Elige más arriba el tipo de obra para poder recortar la portada:
+              un disco se recorta cuadrado; un anime o un videojuego, vertical.
+            </p>
+          )}
         </div>
 
         {/* 🚀 BOTONES */}
@@ -415,7 +447,8 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
               rating === 0 ||
               title.trim() === "" ||
               comment.trim() === "" ||
-              (!mediaId && (!mediaTitle.trim() || !mediaDescription.trim() || !image))
+              (!mediaId &&
+                (!mediaTitle.trim() || !mediaType || !mediaDescription.trim() || !image))
             }
             className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
