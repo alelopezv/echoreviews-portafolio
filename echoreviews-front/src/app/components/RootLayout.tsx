@@ -230,13 +230,13 @@ export function RootLayout() {
           </div>
 
           {menuAbierto && (
-            <nav className="md:hidden pb-4 space-y-1">
+            <nav className="md:hidden pb-4 divide-y divide-slate-800/70">
               {ENLACES.map(({ a, etiqueta, Icono, soloConSesion }) =>
                 soloConSesion && !isLoggedIn ? null : (
                   <Link
                     key={a}
                     to={a}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    className={`flex items-center gap-3 px-4 py-3 transition-colors ${
                       isActive(a)
                         ? "bg-purple-500/20 text-purple-300"
                         : "text-slate-300 hover:text-white hover:bg-slate-800/50"
@@ -248,46 +248,44 @@ export function RootLayout() {
                 )
               )}
 
-              <div className="pt-2 mt-2 border-t border-slate-800">
-                {isLoggedIn ? (
-                  <>
-                    {usuario && (
-                      <p className="px-4 py-2 text-sm text-slate-500">
-                        Hola, <span className="text-purple-300">{usuario.full_name}</span>
-                      </p>
-                    )}
-                    <Link
-                      to="/profile"
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                        isActive("/profile")
-                          ? "bg-purple-500/20 text-purple-300"
-                          : "text-slate-300 hover:text-white hover:bg-slate-800/50"
-                      }`}
-                    >
-                      <User className="w-5 h-5" />
-                      <span>Perfil</span>
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:text-white hover:bg-red-500/20 transition-colors"
-                    >
-                      <LogOut className="w-5 h-5" />
-                      <span>Salir</span>
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setShowLogin(true);
-                      setMenuAbierto(false);
-                    }}
-                    className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/50 transition-colors"
+              {isLoggedIn ? (
+                <>
+                  {usuario && (
+                    <p className="px-4 py-2 text-sm text-slate-500">
+                      Hola, <span className="text-purple-300">{usuario.full_name}</span>
+                    </p>
+                  )}
+                  <Link
+                    to="/profile"
+                    className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                      isActive("/profile")
+                        ? "bg-purple-500/20 text-purple-300"
+                        : "text-slate-300 hover:text-white hover:bg-slate-800/50"
+                    }`}
                   >
                     <User className="w-5 h-5" />
-                    <span>Ingresar</span>
+                    <span>Perfil</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-red-400 hover:text-white hover:bg-red-500/20 transition-colors"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Salir</span>
                   </button>
-                )}
-              </div>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowLogin(true);
+                    setMenuAbierto(false);
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 transition-colors"
+                >
+                  <User className="w-5 h-5" />
+                  <span>Ingresar</span>
+                </button>
+              )}
             </nav>
           )}
         </div>
@@ -315,7 +313,9 @@ export function RootLayout() {
       {/* En un teléfono, los 64 px del margen más los 48 del relleno inferior
           de cada página dejaban 112 px vacíos antes del pie: un sexto de la
           pantalla sin nada. En escritorio ese aire sí se agradece. */}
-      <footer className="border-t border-slate-800/50 bg-slate-950/50 mt-4 md:mt-16">
+      {/* Sin margen en móvil: el borde de arriba ya separa, y el pie tiene su
+          propio relleno interno. El margen solo sumaba vacío a un vacío. */}
+      <footer className="border-t border-slate-800/50 bg-slate-950/50 md:mt-16">
         <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} ${AIRE_VERTICAL}`}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
