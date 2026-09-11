@@ -58,11 +58,32 @@ INSTALLED_APPS = [
     'users',
 ]
 
-# AUTH_USER_MODEL = "echoreviews.AppUser"
-
+# Desde qué direcciones acepta el navegador hablar con esta API.
+#
+# Estaba fija en localhost:5173, y eso es la otra mitad exacta del problema que
+# tenía el frontend con su dirección escrita a mano: aunque el sitio desplegado
+# supiera dónde está la API, el navegador bloquearía cada petición por venir de
+# un origen que esta lista no nombra. Las dos mitades tienen que salir del
+# entorno o el despliegue no funciona.
+#
+# Ojo con el formato: van con esquema y sin barra final —"https://midominio.com",
+# no "midominio.com" ni "https://midominio.com/"—. Es el error más común acá y
+# falla en silencio, porque el rechazo lo hace el navegador y no Django.
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    o.strip()
+    for o in os.getenv(
+        "DJANGO_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+    ).split(",")
+    if o.strip()
+]
+
+# El admin de Django sí usa cookies y CSRF, así que necesita conocer su propio
+# origen público cuando corre detrás de HTTPS. Sin esto, iniciar sesión en
+# /admin/ desde el dominio desplegado falla con "CSRF verification failed".
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if o.strip()
 ]
 
 MIDDLEWARE = [
@@ -133,8 +154,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-USE_I18N = True
-
 LANGUAGE_CODE = "es-cl"
 TIME_ZONE = "America/Santiago"
 USE_I18N = True
@@ -155,6 +174,31 @@ DEFAULT_FROM_EMAIL = "no-reply@echoreviews.local"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "mediafiles")
+
+# Detrás de un proxy (Railway, Render, Fly…) el TLS lo termina el proxy y la
+# petición llega a Django por HTTP plano. Sin esta línea `request.is_secure()`
+# devuelve False aunque el visitante haya entrado por HTTPS, y las cookies
+# marcadas como "solo por conexión segura" no se enviarían nunca.
+#
+# La cabecera la escribe el proxy, no el cliente; confiar en ella sin un proxy
+# delante sería creerle a cualquiera que la mande, por eso solo tiene sentido
+# en un despliegue que efectivamente esté detrás de uno.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Lo que `manage.py check --deploy` exige, activado solo cuando DEBUG está
+# apagado. En desarrollo no hay HTTPS: encender esto en local dejaría el sitio
+# redirigiendo a una dirección segura que no existe.
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # HSTS le dice al navegador "de aquí en adelante, este dominio solo por
+    # HTTPS", y lo recuerda durante este plazo. Es deliberadamente corto: si el
+    # certificado falla, el navegador NO deja entrar y la única salida es
+    # esperar a que venza. Un año, que es el valor habitual, convierte un error
+    # de configuración en un sitio inaccesible durante un año.
+    SECURE_HSTS_SECONDS = 3600
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
