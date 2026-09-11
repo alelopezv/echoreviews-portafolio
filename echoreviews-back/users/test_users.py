@@ -41,6 +41,78 @@ def test_registrarse_crea_la_cuenta_y_deja_la_sesion_iniciada(api):
 
 
 @pytest.mark.django_db
+def test_se_puede_volver_al_dia_siguiente_e_iniciar_sesion(api):
+    """El ciclo que hace cualquier usuario real: registrarse hoy, volver mañana.
+
+    El test de arriba usa el token que devuelve el registro, y ese token lo
+    fabrica SimpleJWT a partir del usuario: funciona aunque la contraseña se
+    hubiera guardado mal. Esta prueba es la otra mitad — entrar con lo que la
+    persona escribió— y es la única que recorre /api/token/.
+    """
+    api.post(REGISTRO, {
+        "username": "tomas", "email": "tomas@ejemplo.cl",
+        "password": "bosque-de-niebla-42",
+    }, format="json")
+
+    sesion = api.post("/api/token/", {
+        "username": "tomas", "password": "bosque-de-niebla-42",
+    }, format="json")
+
+    assert sesion.status_code == 200
+    tokens = sesion.json()
+
+    api.credentials(HTTP_AUTHORIZATION=f"Bearer {tokens['access']}")
+    assert api.get("/api/users/me/").json()["username"] == "tomas"
+
+    # Y cuando el acceso venza, el token de refresco da uno nuevo sin volver
+    # a pedir la contraseña. Es de lo que depende el interceptor del frontend.
+    api.credentials()
+    renovado = api.post("/api/token/refresh/", {"refresh": tokens["refresh"]}, format="json")
+    assert renovado.status_code == 200
+
+    api.credentials(HTTP_AUTHORIZATION=f"Bearer {renovado.json()['access']}")
+    assert api.get("/api/users/me/").json()["username"] == "tomas"
+
+
+@pytest.mark.django_db
+def test_una_contrasena_equivocada_no_abre_sesion(api, usuario):
+    """`usuario` es la fixture "ana", creada con "clave-de-prueba"."""
+    fallido = api.post("/api/token/", {
+        "username": "ana", "password": "la-que-no-es",
+    }, format="json")
+
+    assert fallido.status_code == 401
+    assert "access" not in fallido.json()
+
+
+@pytest.mark.django_db
+def test_un_token_invalido_no_es_lo_mismo_que_tener_permiso(api, resena_aprobada):
+    """SoftJWTAuthentication devuelve None en vez de lanzar 401, y eso importa.
+
+    Existe para que un token vencido no rompa las páginas públicas: el listado
+    de reseñas debe seguir respondiendo aunque el navegador mande basura en la
+    cabecera. Lo que NO puede pasar es que esa indulgencia se contagie a lo
+    privado: un token inválido tiene que valer lo mismo que no tener ninguno,
+    ni un poco más.
+    """
+    api.credentials(HTTP_AUTHORIZATION="Bearer esto-no-es-un-token")
+
+    # Lo público sigue funcionando, que es para lo que se escribió la clase.
+    publico = api.get("/api/reviews/")
+    assert publico.status_code == 200
+    assert publico.json()["count"] == 1
+
+    # Y lo privado sigue cerrado.
+    assert api.get("/api/users/me/").status_code == 401
+    assert api.post("/api/reviews/create/", {"title": "x"}).status_code == 401
+
+
+@pytest.mark.django_db
+def test_sin_cabecera_de_autorizacion_el_perfil_pide_sesion(api):
+    assert api.get("/api/users/me/").status_code == 401
+
+
+@pytest.mark.django_db
 def test_el_nombre_es_opcional_y_alimenta_full_name(api):
     """Con nombre, las reseñas se firman con él; sin nombre, con el usuario.
 

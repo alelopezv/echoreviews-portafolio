@@ -255,7 +255,7 @@ pendientes, verificación de tipos y build del frontend.
 Para correrlo en local:
 
 ```bash
-# Backend — 61 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+# Backend — 65 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
 cd echoreviews-back
 pip install -r requirements-dev.txt
 pytest

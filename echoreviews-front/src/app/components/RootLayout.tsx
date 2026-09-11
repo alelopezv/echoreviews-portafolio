@@ -230,7 +230,7 @@ export function RootLayout() {
           </div>
 
           {menuAbierto && (
-            <nav className="md:hidden pb-4 divide-y divide-slate-800/70">
+            <nav className="md:hidden pb-4 divide-y divide-slate-700">
               {ENLACES.map(({ a, etiqueta, Icono, soloConSesion }) =>
                 soloConSesion && !isLoggedIn ? null : (
                   <Link
