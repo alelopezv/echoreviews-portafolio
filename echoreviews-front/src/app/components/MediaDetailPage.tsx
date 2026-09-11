@@ -4,6 +4,7 @@ import { ArrowLeft, Star } from "lucide-react";
 import api from "../../services/api";
 import type { CatalogMedia, Review } from "../../types";
 import { claseDeAspecto } from "../../lib/media";
+import { AIRE_LATERAL } from "../../lib/estilos";
 
 export function MediaDetailPage() {
   // useParams lee el trozo variable de la URL. Como la ruta se declara
@@ -47,7 +48,7 @@ export function MediaDetailPage() {
 
   if (cargando) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+      <div className={`max-w-4xl mx-auto ${AIRE_LATERAL} py-16 text-center`}>
         <p className="text-slate-400 text-lg">Cargando obra...</p>
       </div>
     );
@@ -55,7 +56,7 @@ export function MediaDetailPage() {
 
   if (error || !media) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+      <div className={`max-w-4xl mx-auto ${AIRE_LATERAL} py-16 text-center`}>
         <p className="text-slate-400 text-lg mb-4">No encontramos esta obra.</p>
         <Link to="/media" className="text-purple-400 hover:text-purple-300">
           Volver al catálogo
@@ -65,7 +66,7 @@ export function MediaDetailPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
+    <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} py-12`}>
       <Link
         to="/media"
         className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors"

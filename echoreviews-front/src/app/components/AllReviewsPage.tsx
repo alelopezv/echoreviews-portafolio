@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import api from "../../services/api";
 import { ReviewListItem } from "./ReviewListItem";
 import { EstadoDeLista } from "./EstadoDeLista";
+import { AIRE_LATERAL } from "../../lib/estilos";
 
 export function AllReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -36,7 +37,7 @@ export function AllReviewsPage() {
   }, [termino]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
+    <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} py-12`}>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white">
           {termino ? "Resultados de la búsqueda" : "Todas las reseñas"}

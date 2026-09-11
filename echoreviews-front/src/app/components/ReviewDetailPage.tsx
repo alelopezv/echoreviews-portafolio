@@ -5,6 +5,7 @@ import api from "../../services/api";
 import type { Media, Review } from "../../types"
 import { claseDeAspecto } from "../../lib/media";
 import { useUsuarioActual } from "../../lib/sesion";
+import { AIRE_LATERAL } from "../../lib/estilos";
 
 export function ReviewDetailPage() {
   const { id } = useParams();
@@ -21,7 +22,7 @@ export function ReviewDetailPage() {
 
   if (!review) {
     return (
-        <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <div className={`max-w-4xl mx-auto ${AIRE_LATERAL} py-16 text-center`}>
           <p className="text-slate-400 text-lg">Cargando reseña...</p>
         </div>
     );
@@ -48,7 +49,7 @@ export function ReviewDetailPage() {
   return (
     <div className="min-h-screen">
       {/* Back Button */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 flex items-center justify-between">
+      <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} pt-8 flex items-center justify-between`}>
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-slate-400 hover:text-purple-400 transition-colors"
@@ -79,7 +80,7 @@ export function ReviewDetailPage() {
 
           Acá la columna mide 240px y la imagen conserva su proporción, así que
           nunca se muestra más grande que su tamaño real. */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} py-8`}>
         {/* minmax(0,1fr) en la segunda columna, y min-w-0 en el <article>:
             sin eso, una palabra larga o un bloque ancho estiran la columna de
             texto y descuadran toda la rejilla. Es el ajuste que casi siempre

@@ -4,6 +4,7 @@ import { Hash, ArrowLeft } from "lucide-react";
 import api from "../../services/api";
 import { ReviewListItem } from "./ReviewListItem";
 import type { Review } from "../../types";
+import { AIRE_LATERAL } from "../../lib/estilos";
 
 export function HashtagPage() {
   const { tag } = useParams();
@@ -36,7 +37,7 @@ export function HashtagPage() {
   }, [tag]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} py-12`}>
       <Link
         to="/hashtags"
         className="inline-flex items-center gap-2 text-slate-400 hover:text-purple-400 transition-colors mb-8"

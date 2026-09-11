@@ -5,6 +5,7 @@ import { ReviewCard } from "./ReviewCard";
 import { EstadoDeLista } from "./EstadoDeLista";
 import api from "../../services/api";
 import type { Review, User } from "../../types";
+import { AIRE_LATERAL } from "../../lib/estilos";
 
 export function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -35,7 +36,7 @@ export function ProfilePage() {
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} py-12`}>
       <div className="text-center mb-12">
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4 shadow-2xl shadow-purple-500/30">
           <span className="text-4xl font-bold text-white">{user?.username?.charAt(0).toUpperCase() || "U"}</span>

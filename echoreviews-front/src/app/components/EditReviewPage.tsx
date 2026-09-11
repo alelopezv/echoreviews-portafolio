@@ -5,6 +5,7 @@ import axios from "axios";
 import api from "../../services/api";
 import { useUsuarioActual } from "../../lib/sesion";
 import type { Hashtag, Review } from "../../types";
+import { AIRE_LATERAL } from "../../lib/estilos";
 
 /**
  * Corregir una reseña propia.
@@ -116,7 +117,7 @@ export function EditReviewPage() {
   // escriba una corrección entera para que se la rechacen al guardar.
   if (usuario && usuario.username !== review.username) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
+      <div className={`max-w-3xl mx-auto ${AIRE_LATERAL} py-16 text-center`}>
         <p className="text-slate-300 mb-2">Esta reseña no es tuya.</p>
         <p className="text-sm text-slate-500 mb-6">
           Cada quien corrige lo que escribió: moderar una reseña ajena se hace
@@ -130,7 +131,7 @@ export function EditReviewPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className={`max-w-3xl mx-auto ${AIRE_LATERAL} py-12`}>
       <Link
         to={`/review/${id}`}
         className="inline-flex items-center gap-2 text-slate-400 hover:text-purple-400 transition-colors mb-8"
