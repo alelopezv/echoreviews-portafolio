@@ -1,0 +1,34 @@
+{
+  // Sin este archivo el proyecto tenía la sintaxis de TypeScript y ninguno de
+  // sus beneficios: Vite compila los .tsx borrando los tipos sin verificarlos,
+  // así que `any` por todos lados pasaba sin que nada se quejara.
+  //
+  // Se verifica con `npm run typecheck`, que no genera archivos: solo revisa.
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+
+    // Vite se encarga de compilar; a tsc solo le pedimos que revise.
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // El interruptor que importa. Activa, entre otras cosas, strictNullChecks:
+    // obliga a considerar que un valor puede ser null o undefined antes de
+    // usarlo. Es justo la clase de error que nos costó el media: null.
+    "strict": true,
+
+    // Avisan de código muerto. Se dejan como advertencia y no como error para
+    // no bloquear el build mientras se limpia el proyecto.
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["src"]
+}

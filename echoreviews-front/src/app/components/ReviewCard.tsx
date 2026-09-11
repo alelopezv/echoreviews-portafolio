@@ -1,5 +1,8 @@
+import type { Review } from "../../types";
+import { claseDeAspecto } from "../../lib/media";
+
 interface ReviewCardProps {
-  review: any;
+  review: Review;
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {
@@ -7,11 +10,11 @@ export function ReviewCard({ review }: ReviewCardProps) {
     <div className="p-6 rounded-2xl bg-slate-800/30 border border-slate-700/50 flex items-center gap-4">
       
       {/* 🖼 Imagen */}
-      {review.media_image && (
+      {review.media?.image && (
         <img
-          src={review.media_image}
-          alt={review.title}
-          className="w-16 h-16 object-cover rounded-lg"
+          src={review.media.image}
+          alt={review.media.title}
+          className={`w-16 object-cover rounded-lg ${claseDeAspecto(review.media.type)}`}
         />
       )}
 
@@ -20,6 +23,12 @@ export function ReviewCard({ review }: ReviewCardProps) {
         <p className="font-bold text-white mb-1">
           {review.title}
         </p>
+        {review.media?.pending && (
+          <span className="inline-block px-2 py-0.5 rounded text-xs
+                          bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            Obra pendiente de aprobación
+          </span>
+        )}
         <p className="text-sm text-slate-500">
           {new Date(review.created_at).toLocaleDateString()}
         </p>

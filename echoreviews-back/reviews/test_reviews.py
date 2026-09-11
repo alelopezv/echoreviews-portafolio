@@ -1,0 +1,547 @@
+"""Las reglas de negocio de las reseñas, cada una con su test.
+
+No se busca cubrir cada línea: se busca que cada decisión importante del
+proyecto quede escrita como una prueba que falla si alguien la rompe.
+"""
+import pytest
+from rest_framework.test import APIClient
+
+from media.models import Media, MediaSuggestion
+from media.views import aprobar_sugerencia
+from reviews.models import Review
+
+
+def resultados(respuesta):
+    """Las reseñas de una respuesta paginada.
+
+    /api/reviews/ devuelve {count, next, previous, results}. Los tests que
+    miran QUÉ salió leen `results`; los que miran CUÁNTAS hay leen `count`,
+    que es el total y no el tamaño de la página.
+    """
+    return respuesta.json()["results"]
+
+
+
+# --------------------------------------------------------------------------
+# 1. Quién puede publicar
+# --------------------------------------------------------------------------
+
+@pytest.mark.django_db
+def test_publicar_sin_sesion_devuelve_401(api, obra):
+    """Sin token no se crea nada.
+
+    Esta es la línea que sostiene todo el sistema: esconder el botón en React
+    no impide nada, porque cualquiera puede llamar la API con Postman.
+    """
+    respuesta = api.post("/api/reviews/create/", {
+        "title": "Colada", "content": "...", "rating": 5, "media": obra.id,
+    })
+
+    assert respuesta.status_code == 401
+    assert Review.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_publicar_con_sesion_devuelve_201(api, usuario, obra):
+    api.force_authenticate(user=usuario)
+
+    respuesta = api.post("/api/reviews/create/", {
+        "title": "Mi reseña", "content": "Me gustó.", "rating": 4, "media": obra.id,
+    })
+
+    assert respuesta.status_code == 201
+    assert Review.objects.count() == 1
+
+
+# --------------------------------------------------------------------------
+# 2. Nadie se auto-aprueba
+# --------------------------------------------------------------------------
+
+@pytest.mark.django_db
+def test_el_estado_lo_decide_el_backend_no_el_cliente(api, usuario, obra):
+    """Aunque el cliente mande status="approved", la reseña nace pendiente.
+
+    La vista pisa ese valor a propósito. Sin esto, cualquiera se publicaría
+    solo saltándose la moderación entera.
+    """
+    api.force_authenticate(user=usuario)
+
+    api.post("/api/reviews/create/", {
+        "title": "Cuela", "content": "...", "rating": 5, "media": obra.id,
+        "status": "approved",          # ← el intento
+        "user": 999,                   # ← y de paso, hacerse pasar por otro
+    })
+
+    resena = Review.objects.get()
+    assert resena.status == "pending"
+    assert resena.user == usuario      # el autor sale del token, no del formulario
+
+
+@pytest.mark.django_db
+def test_el_listado_publico_solo_muestra_aprobadas(api, usuario, obra, resena_aprobada):
+    Review.objects.create(
+        user=usuario, media=obra, title="Pendiente",
+        content="...", rating=3, status="pending",
+    )
+
+    respuesta = api.get("/api/reviews/")
+
+    assert respuesta.status_code == 200
+    titulos = [r["title"] for r in resultados(respuesta)]
+    assert titulos == ["Una obra maestra"]
+
+
+@pytest.mark.django_db
+def test_la_busqueda_mira_titulo_contenido_y_obra(api, usuario, obra, resena_aprobada):
+    """Un solo ?q= tiene que encontrar por los tres lados.
+
+    Es un OR, no un AND: si fueran filtros encadenados habría que escribir un
+    texto que estuviera a la vez en el título, en el cuerpo y en el nombre de
+    la obra, y no encontraría nunca nada.
+    """
+    Review.objects.create(
+        user=usuario, media=obra, title="Sobre el jazz",
+        content="Nada que ver con lo otro.", rating=4, status="approved",
+    )
+
+    def titulos(termino):
+        return sorted(r["title"] for r in resultados(api.get(f"/api/reviews/?q={termino}")))
+
+    assert titulos("maestra") == ["Una obra maestra"]          # por título
+    assert titulos("vacío") == ["Una obra maestra"]            # por contenido
+    assert titulos("bebop") == ["Sobre el jazz", "Una obra maestra"]  # por obra
+    assert titulos("BEBOP") == ["Sobre el jazz", "Una obra maestra"]  # sin distinguir mayúsculas
+    assert titulos("nomatch") == []
+
+    # Sobre esa penúltima línea: NO demuestra que la vista use `icontains`.
+    # Estos tests corren sobre SQLite, y SQLite no sabe hacer un LIKE que
+    # distinga mayúsculas, así que `contains` e `icontains` hacen exactamente
+    # lo mismo. Cambiar uno por otro deja los tests en verde.
+    #
+    # En MySQL, que es donde corre el proyecto, pasa algo parecido pero por
+    # otro motivo: su colación por defecto ya compara ignorando mayúsculas.
+    # Donde sí se notaría la diferencia es en PostgreSQL. `icontains` queda
+    # porque es lo que expresa la intención en cualquier motor, no porque un
+    # test pueda obligarlo.
+
+
+@pytest.mark.django_db
+def test_se_puede_buscar_por_etiqueta_y_sin_repetir_resultados(api, resena_aprobada):
+    """Las etiquetas son cómo está organizado el sitio: el buscador las mira.
+
+    Y de paso fija el .distinct(). hashtags es ManyToMany, así que el JOIN
+    devuelve una fila por etiqueta: sin distinct, una reseña marcada con dos
+    etiquetas que coinciden sale DOS VECES en los resultados.
+    """
+    from hashtags.models import Hashtag
+
+    resena_aprobada.hashtags.set([
+        Hashtag.objects.create(name="sci-fi", status="approved"),
+        Hashtag.objects.create(name="scifi-clasico", status="approved"),
+    ])
+
+    encontradas = resultados(api.get("/api/reviews/?q=sci"))
+    assert [r["title"] for r in encontradas] == ["Una obra maestra"]
+
+
+@pytest.mark.django_db
+def test_buscar_no_saca_a_la_luz_lo_que_no_esta_aprobado(api, usuario, obra):
+    """El filtro de estado manda sobre la búsqueda.
+
+    Sin esto, ?q= sería una puerta trasera para leer lo que el listado
+    público esconde: bastaría adivinar una palabra del texto.
+    """
+    Review.objects.create(
+        user=usuario, media=obra, title="Secreto pendiente",
+        content="Todavía no la revisa nadie.", rating=2, status="pending",
+    )
+
+    assert resultados(api.get("/api/reviews/?q=secreto")) == []
+
+
+@pytest.mark.django_db
+def test_una_busqueda_vacia_devuelve_el_listado_completo(api, resena_aprobada):
+    """?q= sin texto (o con puros espacios) no es un filtro."""
+    assert api.get("/api/reviews/?q=").json()["count"] == 1
+    assert api.get("/api/reviews/?q=%20%20").json()["count"] == 1
+
+
+@pytest.mark.django_db
+def test_se_puede_buscar_por_una_obra_todavia_pendiente(api, usuario, portada):
+    """La obra propuesta también cuenta.
+
+    Una reseña cuya obra espera aprobación no tiene `media`: su título vive en
+    la propuesta. Buscarla no debería depender de si un moderador ya pasó.
+    """
+    propuesta = MediaSuggestion.objects.create(
+        title="Serial Experiments Lain", type="anime",
+        description="Cables y soledad.", image=portada, created_by=usuario,
+    )
+    Review.objects.create(
+        user=usuario, media=None, media_suggestion=propuesta,
+        title="Con propuesta", content="...", rating=5, status="approved",
+    )
+
+    encontradas = resultados(api.get("/api/reviews/?q=lain"))
+    assert [r["title"] for r in encontradas] == ["Con propuesta"]
+
+
+def _muchas_resenas(usuario, obra, cuantas):
+    for n in range(cuantas):
+        Review.objects.create(
+            user=usuario, media=obra, title=f"Reseña {n}",
+            content="...", rating=4, status="approved",
+        )
+
+
+@pytest.mark.django_db
+def test_el_listado_viene_de_a_cinco_y_dice_cuantas_hay_en_total(api, usuario, obra):
+    """`count` es el total; `results` es la página.
+
+    Confundirlos es el error clásico al paginar: la portada anunciaría
+    "5 reseñas publicadas" para siempre, sin importar cuántas haya.
+    """
+    _muchas_resenas(usuario, obra, 12)
+
+    primera = api.get("/api/reviews/").json()
+    assert primera["count"] == 12          # el total, no la página
+    assert len(primera["results"]) == 5
+    assert primera["next"] is not None
+    assert primera["previous"] is None
+
+    ultima = api.get("/api/reviews/?page=3").json()
+    assert len(ultima["results"]) == 2     # 12 = 5 + 5 + 2
+    assert ultima["next"] is None
+
+
+@pytest.mark.django_db
+def test_ninguna_resena_sale_en_dos_paginas_ni_se_pierde(api, usuario, obra):
+    """Paginar reparte, no duplica ni descarta.
+
+    Sin un orden estable la base puede devolver las filas en cualquier orden y
+    la misma reseña aparecería en dos páginas mientras otra no aparece en
+    ninguna. Review.Meta.ordering es lo que lo impide.
+    """
+    _muchas_resenas(usuario, obra, 12)
+
+    vistas = []
+    for pagina in (1, 2, 3):
+        vistas += [r["id"] for r in api.get(f"/api/reviews/?page={pagina}").json()["results"]]
+
+    assert len(vistas) == 12
+    assert len(set(vistas)) == 12          # ninguna repetida
+
+
+@pytest.mark.django_db
+def test_filtrar_por_obra_y_por_etiqueta_lo_hace_el_servidor(api, usuario, obra, portada):
+    """Antes esto se filtraba en el navegador sobre el listado completo.
+
+    Con paginación eso deja de funcionar: el cliente solo vería cinco reseñas
+    y filtraría sobre ellas, así que una reseña de la sexta en adelante
+    sencillamente no existiría para el filtro.
+    """
+    from hashtags.models import Hashtag
+
+    otra_obra = Media.objects.create(
+        title="Paprika", type="anime", description="Sueños ajenos.",
+        image=portada, status="approved",
+    )
+    culto = Hashtag.objects.create(name="culto", status="approved")
+
+    _muchas_resenas(usuario, obra, 8)      # ocho de la primera obra
+    marcada = Review.objects.create(
+        user=usuario, media=otra_obra, title="La novena",
+        content="...", rating=5, status="approved",
+    )
+    marcada.hashtags.add(culto)
+
+    por_obra = api.get(f"/api/reviews/?media={otra_obra.id}").json()
+    assert por_obra["count"] == 1
+    assert por_obra["results"][0]["title"] == "La novena"
+
+    por_etiqueta = api.get("/api/reviews/?hashtag=culto").json()
+    assert por_etiqueta["count"] == 1
+
+    # Y la etiqueta no distingue mayúsculas: la URL la escribe una persona.
+    assert api.get("/api/reviews/?hashtag=CULTO").json()["count"] == 1
+
+
+@pytest.mark.django_db
+def test_filtrar_tampoco_muestra_lo_que_no_esta_aprobado(api, usuario, obra):
+    """El estado manda sobre cualquier filtro, igual que sobre la búsqueda."""
+    Review.objects.create(
+        user=usuario, media=obra, title="Pendiente",
+        content="...", rating=3, status="pending",
+    )
+
+    assert api.get(f"/api/reviews/?media={obra.id}").json()["count"] == 0
+
+
+@pytest.mark.django_db
+def test_las_cifras_de_la_portada_no_salen_de_una_pagina(api, usuario, obra, admin):
+    """Un agregado se pregunta, no se deduce de las reseñas que llegaron.
+
+    Este endpoint existe porque la portada contaba sobre la lista que acababa
+    de pedir. Con cinco por página habría anunciado "5 reseñas publicadas" para
+    siempre, y los autores serían los de esas cinco.
+    """
+    from hashtags.models import Hashtag
+
+    usada = Hashtag.objects.create(name="usada", status="approved")
+    Hashtag.objects.create(name="nunca-usada", status="approved")
+
+    _muchas_resenas(usuario, obra, 8)
+    del_admin = Review.objects.create(
+        user=admin, media=obra, title="Del moderador",
+        content="...", rating=4, status="approved",
+    )
+    del_admin.hashtags.add(usada)
+
+    # Una pendiente: no cuenta como publicada ni hace "activo" a su autor.
+    from django.contrib.auth.models import User
+    fantasma = User.objects.create_user("fantasma", password="x")
+    Review.objects.create(
+        user=fantasma, media=obra, title="En la cola",
+        content="...", rating=2, status="pending",
+    )
+
+    cifras = api.get("/api/reviews/stats/").json()
+
+    assert cifras["reviews"] == 9      # las 8 + la del admin, no la pendiente
+    assert cifras["writers"] == 2      # usuario y admin; el fantasma no
+    assert cifras["hashtags"] == 1     # "nunca-usada" no se anuncia
+
+
+# --------------------------------------------------------------------------
+# 3. El contrato de salida es estable
+# --------------------------------------------------------------------------
+
+@pytest.mark.django_db
+def test_todas_las_resenas_traen_las_mismas_claves(api, usuario, obra, portada, resena_aprobada):
+    """Una reseña con obra aprobada y otra con propuesta pendiente deben
+    devolver la MISMA forma.
+
+    Este es el bug que motivó media parte del proyecto: los campos declarados
+    con source="media.title" desaparecían del JSON cuando media era None, así
+    que el frontend recibía objetos de formas distintas según el caso.
+    """
+    propuesta = MediaSuggestion.objects.create(
+        title="Serial Experiments Lain", type="anime",
+        description="Cables y soledad.", image=portada, created_by=usuario,
+    )
+    Review.objects.create(
+        user=usuario, media=None, media_suggestion=propuesta,
+        title="Con propuesta", content="...", rating=5, status="approved",
+    )
+
+    datos = resultados(api.get("/api/reviews/"))
+    assert len(datos) == 2
+
+    claves_primera, claves_segunda = set(datos[0]), set(datos[1])
+    assert claves_primera == claves_segunda
+
+    # Y ninguna se queda sin obra: la que espera aprobación saca los datos
+    # de su propuesta y se marca como pendiente.
+    por_titulo = {r["title"]: r for r in datos}
+    assert por_titulo["Una obra maestra"]["media"]["pending"] is False
+    assert por_titulo["Con propuesta"]["media"]["pending"] is True
+    assert por_titulo["Con propuesta"]["media"]["title"] == "Serial Experiments Lain"
+
+
+# --------------------------------------------------------------------------
+# 4. Toda reseña habla de una obra completa
+# --------------------------------------------------------------------------
+
+@pytest.mark.django_db
+def test_una_obra_nueva_incompleta_se_rechaza(api, usuario):
+    """Sin imagen ni descripción no se puede proponer una obra.
+
+    El 400 debe decir QUÉ falta, no solo que algo falló.
+    """
+    api.force_authenticate(user=usuario)
+
+    respuesta = api.post("/api/reviews/create/", {
+        "title": "Reseña", "content": "...", "rating": 4,
+        "media_title": "Perfect Blue", "media_type": "anime",
+        # faltan media_description e image
+    })
+
+    assert respuesta.status_code == 400
+    assert set(respuesta.json()) == {"media_description", "image"}
+    assert Review.objects.count() == 0
+
+
+def _portada(ancho, alto):
+    """Una imagen real del tamaño pedido."""
+    import io
+    from PIL import Image
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (ancho, alto), "teal").save(buffer, format="JPEG")
+    return SimpleUploadedFile("portada.jpg", buffer.getvalue(), content_type="image/jpeg")
+
+
+@pytest.mark.django_db
+def test_una_portada_diminuta_no_entra_al_catalogo(api, usuario):
+    """Y el 400 dice cuánto mide y cuánto debería medir.
+
+    La portada la comparten todas las reseñas de esa obra, así que dejarla
+    entrar pixelada arruina el catálogo para todo el mundo y solo se arregla
+    desde el admin. Es más barato no aceptarla.
+    """
+    api.force_authenticate(user=usuario)
+
+    respuesta = api.post("/api/reviews/create/", {
+        "title": "R", "content": "...", "rating": 4,
+        "media_title": "Perfect Blue", "media_type": "anime",
+        "media_description": "Una actriz y su reflejo.",
+        "image": _portada(120, 180),
+    })
+
+    assert respuesta.status_code == 400
+    assert "120×180" in respuesta.json()["image"][0]
+    assert "400" in respuesta.json()["image"][0]
+    assert Review.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_una_portada_del_tamano_justo_si_entra(api, usuario):
+    """El límite es un mínimo, no un rechazo de todo lo que no sea enorme.
+
+    Sin este test, subir el mínimo a cualquier número dejaría el otro test en
+    verde y el formulario rechazando portadas perfectamente usables.
+    """
+    api.force_authenticate(user=usuario)
+
+    respuesta = api.post("/api/reviews/create/", {
+        "title": "R", "content": "...", "rating": 4,
+        "media_title": "Perfect Blue", "media_type": "anime",
+        "media_description": "Una actriz y su reflejo.",
+        "image": _portada(400, 600),
+    })
+
+    assert respuesta.status_code == 201
+
+
+# --------------------------------------------------------------------------
+# 5. Aprobar una propuesta reengancha TODAS sus reseñas
+# --------------------------------------------------------------------------
+
+@pytest.mark.django_db
+def test_aprobar_una_propuesta_reengancha_las_resenas_hermanas(usuario, admin, portada):
+    """Ana y Bruno proponen la misma obra; el admin elige una.
+
+    Las dos reseñas deben quedar apuntando a la misma obra del catálogo. Antes
+    solo se reenganchaban las de la propuesta elegida y las demás quedaban
+    huérfanas para siempre.
+    """
+    from django.contrib.auth.models import User
+    bruno = User.objects.create_user("bruno", password="x")
+
+    de_ana = MediaSuggestion.objects.create(
+        title="Paprika", type="anime", description="La de Ana.",
+        image=portada, created_by=usuario,
+    )
+    de_bruno = MediaSuggestion.objects.create(
+        title="Paprika", type="anime", description="La de Bruno.",
+        image=portada, created_by=bruno,
+    )
+    r_ana = Review.objects.create(user=usuario, media=None, media_suggestion=de_ana,
+                                  title="Ana", content="...", rating=5)
+    r_bruno = Review.objects.create(user=bruno, media=None, media_suggestion=de_bruno,
+                                    title="Bruno", content="...", rating=4)
+
+    obra_creada, error = aprobar_sugerencia(de_ana)
+
+    assert error is None
+    assert Media.objects.filter(title="Paprika").count() == 1
+    assert obra_creada.description == "La de Ana."   # la del autor elegido
+
+    for resena in (r_ana, r_bruno):
+        resena.refresh_from_db()
+        assert resena.media == obra_creada
+        assert resena.media_suggestion is None
+
+
+# --------------------------------------------------------------------------
+# 6. Moderar no es reescribir
+# --------------------------------------------------------------------------
+
+@pytest.mark.django_db
+def test_un_admin_no_puede_editar_la_resena_de_otro(api, admin, resena_aprobada):
+    """El admin modera por estado, no cambiando el texto ajeno.
+
+    Antes ReviewDetailView dejaba al staff editar cualquier reseña sin dejar
+    rastro: cambiar la opinión de alguien y dejarla firmada con su nombre.
+    """
+    api.force_authenticate(user=admin)
+    texto_original = resena_aprobada.content
+
+    respuesta = api.patch(f"/api/reviews/{resena_aprobada.id}/",
+                          {"content": "Texto puesto por el admin"}, format="json")
+
+    assert respuesta.status_code == 403
+    resena_aprobada.refresh_from_db()
+    assert resena_aprobada.content == texto_original
+
+
+@pytest.mark.django_db
+def test_el_autor_puede_corregir_su_resena_y_sus_etiquetas(api, usuario, resena_aprobada):
+    """Lo que hace la página de edición, de punta a punta.
+
+    Las etiquetas viajan como ids en el PATCH aunque la reseña las devuelva
+    por nombre, así que el formulario tiene que cruzarlas contra el catálogo
+    antes de mandarlas. Este test fija ese contrato.
+    """
+    from hashtags.models import Hashtag
+
+    anime = Hashtag.objects.create(name="anime", status="approved")
+    culto = Hashtag.objects.create(name="culto", status="approved")
+    resena_aprobada.hashtags.set([anime])
+
+    api.force_authenticate(user=usuario)
+    respuesta = api.patch(f"/api/reviews/{resena_aprobada.id}/", {
+        "title": "Título corregido",
+        "content": "Texto reescrito por su autor.",
+        "rating": 3,
+        "hashtags": [culto.id],
+    }, format="json")
+
+    assert respuesta.status_code == 200
+
+    resena_aprobada.refresh_from_db()
+    assert resena_aprobada.title == "Título corregido"
+    assert resena_aprobada.rating == 3
+    assert list(resena_aprobada.hashtags.all()) == [culto]   # reemplaza, no suma
+
+
+@pytest.mark.django_db
+def test_el_ciclo_de_rechazo_devuelve_la_resena_a_su_autor(api, usuario, admin, resena_aprobada):
+    """Rechazar exige motivo; corregir devuelve la reseña a la cola."""
+    # Sin motivo no se puede rechazar.
+    api.force_authenticate(user=admin)
+    sin_motivo = api.patch(f"/api/reviews/{resena_aprobada.id}/reject/", {}, format="json")
+    assert sin_motivo.status_code == 400
+
+    # Con motivo, sí.
+    api.patch(f"/api/reviews/{resena_aprobada.id}/reject/",
+              {"reason": "Desarrolla más la opinión."}, format="json")
+    resena_aprobada.refresh_from_db()
+    assert resena_aprobada.status == "rejected"
+    assert resena_aprobada.rejection_reason == "Desarrolla más la opinión."
+
+    # Desaparece del listado público…
+    assert resultados(api.get("/api/reviews/")) == []
+
+    # …pero su autor la ve, con el motivo.
+    api.force_authenticate(user=usuario)
+    mias = api.get("/api/reviews/mine/").json()
+    assert mias[0]["rejection_reason"] == "Desarrolla más la opinión."
+
+    # Y al corregirla vuelve a la cola de moderación.
+    api.patch(f"/api/reviews/{resena_aprobada.id}/",
+              {"content": "Opinión ampliada."}, format="json")
+    resena_aprobada.refresh_from_db()
+    assert resena_aprobada.status == "pending"
+    assert resena_aprobada.rejection_reason == ""

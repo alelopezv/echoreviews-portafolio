@@ -1,45 +1,56 @@
 import { Link } from "react-router-dom";
-import { Pen, Hash, TrendingUp, Clock, Star } from "lucide-react";
-import { reviewsData } from "../data/mockData";
+import { Pen, Hash, TrendingUp, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
-import api from "../../services/api.ts";
+import api from "../../services/api";
+import { ReviewListItem } from "./ReviewListItem";
+import { EstadoDeLista } from "./EstadoDeLista";
+import type { Estadisticas, Pagina, Review } from "../../types";
+import { AIRE_LATERAL, AIRE_VERTICAL } from "../../lib/estilos";
 
 export function HomePage() {
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [latestReviews, setLatestReviews] = useState<Review[]>([]);
+  const [cifras, setCifras] = useState<Estadisticas | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    api.get("reviews/")
-      .then(res => {
-        setReviews(res.data.results || res.data);
+    // Dos peticiones a la vez, porque piden cosas distintas: la primera página
+    // de reseñas y los totales del sitio.
+    //
+    // Antes era una sola: se pedían TODAS las reseñas y de ahí salía todo, la
+    // lista y los tres números. Con la paginación eso dejó de servir —el
+    // navegador solo recibe cinco— y de paso se arregla lo que siempre estuvo
+    // mal: los totales no son algo que se deduzca de los datos que uno tenga a
+    // mano, son una pregunta aparte.
+    Promise.all([
+      api.get<Pagina<Review>>("reviews/"),
+      api.get<Estadisticas>("reviews/stats/"),
+    ])
+      .then(([listado, estadisticas]) => {
+        setLatestReviews(listado.data.results);
+        setCifras(estadisticas.data);
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        setError(true);
+      })
+      .finally(() => setCargando(false));
   }, []);
 
-  const latestReviews = reviews.slice(0, 6);
+  // La portada muestra las cinco más recientes; el resto está detrás de "Ver
+  // todas las reseñas". El corte ya no lo hace el navegador: la primera página
+  // del endpoint SON las cinco más recientes, así que no se descarga nada que
+  // no se vaya a mostrar.
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('es-ES', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  };
-
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      anime: "text-purple-400",
-      music: "text-pink-400",
-      games: "text-blue-400",
-      film: "text-green-400"
-    };
-    return colors[category as keyof typeof colors] || "text-gray-400";
-  };
+  // Si la petición falló no sabemos cuántas hay, y un cero afirmaría que no hay
+  // ninguna. Son cosas distintas y la portada no debería confundirlas.
+  const cifra = (n?: number) =>
+    error ? "—" : cargando || n === undefined ? "…" : n;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} ${AIRE_VERTICAL}`}>
       {/* Hero Section */}
-      <div className="text-center mb-16">
+      <div className="text-center mb-10 sm:mb-16">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 mb-6">
           <Pen className="w-4 h-4 text-purple-400" />
           <span className="text-sm text-purple-300">Crítica cultural independiente</span>
@@ -74,33 +85,38 @@ export function HomePage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-16">
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-sm">
-          <div className="flex items-center gap-3 mb-2">
+      {/* Tres en fila también en el teléfono.
+          Apiladas (`grid-cols-1`) ocupaban tres tarjetas de ancho completo con
+          el contenido pegado a la izquierda: mucho espacio muerto al lado, y
+          unos 500 px de scroll antes de llegar a las reseñas, que es lo que la
+          gente vino a ver. De a tres son compactas y se leen igual. */}
+      <div className="grid grid-cols-3 gap-3 sm:gap-6 mb-10 sm:mb-16">
+        <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-sm text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center sm:gap-3 gap-1 mb-2">
             <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
               <Pen className="w-5 h-5 text-purple-400" />
             </div>
-            <div className="text-3xl font-bold text-white">{reviewsData.length}</div>
+            <div className="text-3xl font-bold text-white">{cifra(cifras?.reviews)}</div>
           </div>
           <p className="text-slate-400">Reseñas publicadas</p>
         </div>
 
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-sm">
-          <div className="flex items-center gap-3 mb-2">
+        <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-sm text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center sm:gap-3 gap-1 mb-2">
             <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-pink-400" />
             </div>
-            <div className="text-3xl font-bold text-white">42</div>
+            <div className="text-3xl font-bold text-white">{cifra(cifras?.writers)}</div>
           </div>
           <p className="text-slate-400">Escritores activos</p>
         </div>
 
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-sm">
-          <div className="flex items-center gap-3 mb-2">
+        <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-sm text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center sm:gap-3 gap-1 mb-2">
             <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
               <Hash className="w-5 h-5 text-blue-400" />
             </div>
-            <div className="text-3xl font-bold text-white">156</div>
+            <div className="text-3xl font-bold text-white">{cifra(cifras?.hashtags)}</div>
           </div>
           <p className="text-slate-400">Hashtags únicos</p>
         </div>
@@ -113,90 +129,21 @@ export function HomePage() {
           <h2 className="text-3xl font-bold text-white">Últimas Reseñas</h2>
         </div>
 
-        <div className="space-y-8">
-          {latestReviews.map((review) => (
-            <Link
-              key={review.id}
-              to={`/review/${review.id}`}
-              className="group block"
-            >
-              <article className="rounded-2xl overflow-hidden bg-slate-800/30 border border-slate-700/50 hover:border-purple-500/50 transition-all hover:shadow-xl hover:shadow-purple-500/10">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Image */}
-                  <div className="lg:col-span-1 aspect-[4/3] lg:aspect-auto overflow-hidden">
-                    <img
-                      src={review.media_image || "https://via.placeholder.com/400x300"}
-                      alt={review.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-
-                  {/* Content */}
-                  <div className="lg:col-span-2 p-6 lg:py-6 lg:pr-6 lg:pl-0">
-                    {/* Meta */}
-                    <div className="flex flex-wrap items-center gap-3 mb-4">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={`https://ui-avatars.com/api/?name=${review.user}&background=7c3aed&color=fff`}
-                          alt={review.user}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                        <span className="text-sm text-slate-300">{review.user}</span>
-                      </div>
-                      <span className="text-slate-600">•</span>
-                      <span className="text-sm text-slate-400">{formatDate(review.created_at)}</span>
-                      <span className="text-slate-600">•</span>
-                      <span className="text-sm text-slate-400">~5 min de lectura</span>
-                      <span className="text-slate-600">•</span>
-                      <span className={`text-sm font-medium capitalize ${getCategoryColor(review.media_type)}`}>
-                        {review.media_type}
-                      </span>
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-purple-400 transition-colors">
-                      {review.title}
-                    </h3>
-
-                    {/* Excerpt */}
-                    <p className="text-slate-400 mb-4 line-clamp-2">
-                      {review.content.slice(0, 120) + "..."}
-                    </p>
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between">
-                      {/* Hashtags */}
-                      <div className="flex flex-wrap gap-2">
-                        {(review.hashtags || []).slice(0, 3).map((tag: string) => (
-                          <span
-                            key={tag}
-                            className="text-xs px-2 py-1 rounded-full bg-slate-700/50 text-slate-300 hover:bg-purple-500/20 hover:text-purple-300 transition-colors"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                        {review.hashtags.length > 3 && (
-                          <span className="text-xs px-2 py-1 rounded-full bg-slate-700/50 text-slate-400">
-                            +{(review.hashtags || []).length - 3}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Rating */}
-                      <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-yellow-500/20">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span className="text-sm font-bold text-yellow-400">{review.rating}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            </Link>
-          ))}
-        </div>
+        <EstadoDeLista
+          cargando={cargando}
+          error={error}
+          vacio={latestReviews.length === 0}
+          mensajeVacio="Todavía no hay reseñas publicadas. Podrías escribir la primera."
+        >
+          <div className="space-y-8">
+            {latestReviews.map((review) => (
+              <ReviewListItem key={review.id} review={review} />
+            ))}
+          </div>
+        </EstadoDeLista>
 
         {/* View All Button */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-8 sm:mt-12">
           <Link
             to="/all-reviews"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 text-white transition-all"

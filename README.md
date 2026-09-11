@@ -1,133 +1,318 @@
 # ⚙️ EchoReviews
 
-EchoReviews es una plataforma de crítica cultural donde los usuarios pueden escribir y explorar reseñas de anime, música y videojuegos.
+[![CI](https://github.com/alelopezv/echoreviews-portafolio/actions/workflows/ci.yml/badge.svg)](https://github.com/alelopezv/echoreviews-portafolio/actions/workflows/ci.yml)
 
-El proyecto está dividido en:
+EchoReviews es una plataforma de crítica cultural donde los usuarios escriben y exploran
+reseñas de anime, música y videojuegos, con un flujo de moderación para el contenido
+que proponen.
 
-- 🔧 Backend (Django REST API)
-- 🎨 Frontend (React + Vite)
+El proyecto está dividido en dos partes:
+
+- 🔧 **Backend** — API REST con Django y Django REST Framework, sobre MySQL y Docker
+- 🎨 **Frontend** — React + Vite + TypeScript
+
+---
+
+## 📸 Capturas
+
+![Portada de EchoReviews](docs/screenshots/portada.jpg)
+
+Las cifras de la portada no están escritas a mano: salen de contar lo que
+devuelve la API.
+
+<table>
+<tr>
+<td width="50%">
+<img src="docs/screenshots/resena.jpg" alt="Detalle de una reseña">
+<p><b>Una reseña.</b> La portada sale ya encuadrada porque el recorte se
+aplicó al archivo al subirlo, no al mostrarlo.</p>
+</td>
+<td width="50%">
+<img src="docs/screenshots/catalogo.jpg" alt="Catálogo de obras">
+<p><b>El catálogo.</b> Sin filtro se agrupa por tipo: un anime vertical junto
+a un disco cuadrado no es un catálogo, es un montón.</p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="docs/screenshots/escribir.jpg" alt="Formulario de reseña">
+<p><b>Escribir.</b> Si la obra no está en el catálogo se propone desde el
+mismo formulario, con su tipo y su sinopsis.</p>
+</td>
+<td width="50%">
+<img src="docs/screenshots/recorte.jpg" alt="Recorte de la portada">
+<p><b>El recorte.</b> El marco toma la forma del tipo de obra elegido:
+cuadrado para un disco, 2:3 para un anime o un videojuego.</p>
+</td>
+</tr>
+<tr>
+<td width="50%">
+<img src="docs/screenshots/hashtags.jpg" alt="Reseñas de una etiqueta">
+<p><b>Las etiquetas.</b> Cada una tiene su página, y el buscador de la barra
+superior también mira dentro de ellas.</p>
+</td>
+<td width="50%">
+<img src="docs/screenshots/moderacion.png" alt="Moderación desde el admin de Django">
+<p><b>La moderación.</b> Los tres estados conviviendo. Un admin decide si algo
+se publica; reescribir el texto ajeno no es una opción que exista.</p>
+</td>
+</tr>
+</table>
 
 ---
 
 ## 🚀 Tecnologías
 
-### Backend
-- Django
-- Django REST Framework
-- MySQL (Docker)
-- JWT (SimpleJWT)
+**Backend** · Django 5.2 · Django REST Framework · MySQL 8.4 · Docker Compose · JWT (SimpleJWT)
 
-### Frontend
-- React
-- Vite
-- TypeScript
-- TailwindCSS
-- Axios
-- React Router DOM
+**Frontend** · React 18 · Vite 6 · TypeScript · TailwindCSS · Axios · React Router
 
 ---
 
-## 📦 Instalación
+## 📦 Puesta en marcha
 
-### 1. Clonar repositorio
+Necesitas **Docker** y **Node.js 18+**.
+
+### 1. Clonar el repositorio
 
 ```bash
-git clone <repo-url>
-cd echoreviews
+git clone https://github.com/alelopezv/echoreviews-portafolio.git
+cd echoreviews-portafolio
+```
 
-## 🚀 Ejecución del proyecto
-
-### 2. Levantar backend (Docker)
+### 2. Levantar el backend
 
 ```bash
 cd echoreviews-back
-docker-compose up --build
+docker compose up --build
+```
 
-### 3. Levantar frontend
+Al arrancar, el contenedor espera a que MySQL esté listo y **aplica las migraciones
+automáticamente**, así que no hay que correr `migrate` a mano.
+
+> Las variables de entorno son opcionales para desarrollo local: los valores por
+> defecto del `docker-compose.yml` ya funcionan. Si quieres personalizarlas,
+> copia el archivo de ejemplo con `cp .env.example .env`.
+
+### 3. Cargar los datos de prueba
+
+Con los contenedores corriendo, en otra terminal:
 
 ```bash
-cd echoreviews-front
+docker exec -it echoreviews-api-container python manage.py loaddata seed.json
+```
+
+### 4. Levantar el frontend
+
+```bash
+cd ../echoreviews-front
 npm install
 npm run dev
+```
 
-## 🚀 Acceso al Proyecto
-* **Frontend:** [http://localhost:5173](http://localhost:5173)
-* **Backend API:** [http://localhost:8000](http://localhost:8000)
+### 5. Acceder
+
+| Servicio | URL |
+|---|---|
+| Frontend | http://localhost:5173 |
+| API | http://localhost:8000/api/ |
+| Admin de Django | http://localhost:8000/admin/ |
 
 ---
 
-## 🌱 Datos de Prueba (Seeds)
-El proyecto incluye un volcado de datos iniciales para facilitar la navegación y evaluación inmediata de las funcionalidades.
+## 🌱 Datos de prueba
 
-### 📥 Cargar seeds
-Ejecuta el siguiente comando para poblar la base de datos:
-```bash
-docker exec -it echoreviews-api-container python manage.py loaddata seed.json
+El archivo `seed.json` incluye un catálogo mínimo para que la aplicación se vea
+poblada apenas la levantas: usuarios, obras con sus portadas —anime, discos y
+videojuegos—, reseñas repartidas entre los tres estados de moderación, y
+hashtags con sus relaciones. Es el contenido que se ve en las capturas de
+arriba, aunque los contadores no calcen al dedo: cada una se tomó en un
+momento distinto del desarrollo.
 
-### 📌 El dump incluye:
-* **Usuario Administrador:**
-    * **Username:** `admin`
-    * **Password:** `12345678`
-* **Usuarios convencionales** con actividad previa.
-* **Reviews** detalladas.
-* **Media:** Catálogo precargado de anime, música y videojuegos.
-* **Hashtags y Relaciones:** Conexiones completas entre modelos.
+**Usuario administrador:** `admin` / `12345678`
+
+Las imágenes de las obras se versionan en `seed_assets/media/` y el contenedor las
+copia a `mediafiles/` al arrancar. La carpeta `mediafiles/` guarda además lo que
+suben los usuarios y por eso está en `.gitignore`.
 
 ---
 
 ## 🔐 Autenticación
-La seguridad se gestiona mediante **JSON Web Tokens (JWT)**.
 
-* **Header:** `Authorization: Bearer <token>`
-* **Endpoints principales:**
-    * `POST /api/token/` → Iniciar sesión y obtener par de tokens.
-    * `POST /api/token/refresh/` → Refrescar el token de acceso.
-    * `GET /api/users/me/` → Obtener información del perfil actual.
+La API usa **JSON Web Tokens**. Se envían en la cabecera `Authorization: Bearer <token>`.
 
----
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `POST` | `/api/users/register/` | Crear una cuenta. Devuelve los tokens, así que deja la sesión iniciada |
+| `POST` | `/api/token/` | Iniciar sesión y obtener el par de tokens |
+| `POST` | `/api/token/refresh/` | Renovar el token de acceso |
+| `GET` | `/api/users/me/` | Perfil del usuario autenticado |
 
-## 📝 Funcionalidades Principales
-
-### Backend (Django REST Framework)
-* **Gestión de Reseñas:** CRUD completo para la creación y edición de contenido.
-* **Sistema de Moderación:** Flujo de estados para publicaciones (`pending` / `approved`).
-* **Inteligencia de Datos:** Sugerencias automáticas de media y hashtags.
-* **Arquitectura de Relaciones:** Vínculos sólidos entre `User` → `Reviews` → `Media`.
-
-### Frontend (React)
-* **Gestión de Sesión:** Login persistente y manejo de estados con JWT.
-* **Formularios Dinámicos:** Interfaz intuitiva para la creación de nuevas reseñas.
-* **Exploración:** Feed de noticias, búsqueda por hashtags y vista de perfil.
-* **Vistas de Detalle:** Páginas específicas para profundizar en cada review.
+El registro solo acepta `username`, `first_name`, `email` y `password`: los
+permisos no son campos del formulario. Las contraseñas pasan por los
+validadores de Django —incluido el que las compara contra el nombre de quien
+las elige— y el nombre de usuario se comprueba sin distinguir mayúsculas, para
+que `Ana` y `ana` no puedan ser dos cuentas distintas.
 
 ---
 
-## 🗄 Base de Datos y Estructura
-El proyecto utiliza **MySQL** orquestado mediante **Docker**.
+## 📡 Endpoints principales
 
-### Entidades Principales:
-* `User` (Perfiles y roles)
-* `Review` (Contenido central)
-* `Media` (Categorización de productos)
-* `Hashtag` (Etiquetas de búsqueda)
-* `MediaSuggestion` (Propuestas de contenido)
+Con el backend corriendo, **[localhost:8000/api/docs/](http://localhost:8000/api/docs/)**
+tiene la documentación completa: se genera leyendo las vistas y los
+serializers, así que no puede quedar desactualizada como una escrita aparte.
+El esquema OpenAPI en bruto está en `/api/schema/`.
+
+| Método | Endpoint | Acceso | Descripción |
+|---|---|---|---|
+| `GET` | `/api/reviews/` | Público | Reseñas aprobadas, de a 5 por página. `?q=` busca en el título, el texto, la obra y las etiquetas; `?media=` y `?hashtag=` filtran; `?page=` navega |
+| `GET` | `/api/reviews/stats/` | Público | Las tres cifras de la portada |
+| `POST` | `/api/reviews/create/` | Autenticado | Crear una reseña |
+| `GET` | `/api/reviews/mine/` | Autenticado | Mis reseñas |
+| `GET` `PATCH` `DELETE` | `/api/reviews/<id>/` | Autenticado | Detalle, edición y borrado |
+| `PATCH` | `/api/reviews/<id>/approve/` | Admin | Aprobar una reseña |
+| `GET` | `/api/media/` | Público | Catálogo de obras aprobadas |
+| `POST` | `/api/media/suggestions/create/` | Autenticado | Proponer una obra nueva |
+| `PATCH` | `/api/media/suggestions/<id>/approve/` | Admin | Aprobar una propuesta |
+| `GET` | `/api/hashtags/` | Público | Hashtags |
 
 ---
 
-## 📁 Organización del Repositorio
+## 📝 Funcionalidades
+
+### Backend
+- **Reseñas** — CRUD completo con permisos por usuario y por rol.
+- **Moderación** — las reseñas y las obras propuestas pasan por estados
+  `pending` / `approved` / `rejected` antes de publicarse.
+- **Propuestas de contenido** — si un usuario reseña una obra que no está en el
+  catálogo, se crea una `MediaSuggestion`. Al aprobarla, se genera la `Media`
+  definitiva y las reseñas que quedaron colgando se reenlazan automáticamente.
+- **Portadas** — el recorte que elige el usuario se aplica al archivo con
+  Pillow al subirlo, no al mostrarlo: la imagen sale bien encuadrada en todas
+  partes sin que ningún componente tenga que saber nada. De paso se reducen
+  las que superan los 1600 px, que ninguna vista necesita.
+- **Hashtags** — normalizados en minúsculas para evitar duplicados. Un usuario
+  puede proponerlos al escribir una reseña; al aprobarlos, el hashtag se publica
+  y queda enganchado a las reseñas que lo pidieron. El catálogo de etiquetas lo
+  cura el admin: el autor escribe la reseña y no puede editarla nadie más, pero
+  las etiquetas sí son editoriales.
+
+### Frontend
+- Sesión persistente con JWT y renovación automática del token al expirar.
+- Formulario de reseñas con selección de obra existente o propuesta de una nueva,
+  incluyendo carga y recorte de la portada.
+- Feed de reseñas, catálogo de obras, navegación por hashtags y vista de perfil.
+- Buscador en la barra superior. El término viaja en la URL (`/all-reviews?q=`),
+  así que una búsqueda es un enlace que se puede compartir y al que el botón
+  «atrás» vuelve. El filtro del catálogo funciona igual (`/media?tipo=music`).
+- Edición de reseñas propias, que cierra el ciclo de moderación: una reseña
+  rechazada se corrige desde el perfil y vuelve sola a la cola de revisión.
+- Las respuestas de la API están descritas en `src/types.ts`, un tipo por
+  endpoint. TypeScript corre en modo estricto y no queda ningún `any` explícito.
+
+---
+
+## 🗄 Modelo de datos
+
+| Entidad | Rol |
+|---|---|
+| `User` | Usuarios y roles (usa el modelo de Django) |
+| `Review` | Reseña: contenido, puntuación y estado de moderación |
+| `Media` | Obra del catálogo (anime, música o videojuego) |
+| `MediaSuggestion` | Obra propuesta por un usuario, pendiente de aprobación |
+| `Hashtag` | Etiqueta de búsqueda |
+| `HashtagSuggestion` | Etiqueta propuesta, pendiente de aprobación |
+
+---
+
+## 📁 Organización
+
 ```text
-echoreviews/
+echoreviews-portafolio/
+├── echoreviews-back/          # API REST con Django
+│   ├── echoreviews/           # settings, urls y autenticación JWT
+│   ├── reviews/               # reseñas y moderación
+│   ├── media/                 # catálogo de obras y propuestas
+│   ├── hashtags/              # etiquetas
+│   ├── users/                 # perfil del usuario
+│   ├── seed_assets/           # imágenes de los datos de prueba
+│   ├── docker-compose.yml
+│   └── entrypoint.sh          # espera a MySQL y aplica migraciones
 │
-├── echoreviews-back/      # Django REST API (Servidor de datos)
-├── echoreviews-front/     # React frontend (Interfaz de usuario)
+└── echoreviews-front/         # Interfaz en React + Vite
+    └── src/
+        ├── app/components/    # páginas y componentes
+        └── services/          # cliente HTTP con interceptores JWT
+```
 
 ---
 
-## ⚠️ Notas
-* Este es un proyecto orientado a portafolio; algunas funcionalidades complejas han sido simplificadas para facilitar la demostración.
-* Se recomienda utilizar los datos de prueba (seed) para una mejor experiencia de visualización.
+## 🧪 Tests y verificaciones
+
+Cada push ejecuta la CI: tests del backend, comprobación de migraciones
+pendientes, verificación de tipos y build del frontend.
+
+Para correrlo en local:
+
+```bash
+# Backend — 65 tests sobre SQLite en memoria, sin necesidad de levantar MySQL
+cd echoreviews-back
+pip install -r requirements-dev.txt
+pytest
+
+# ¿Falta alguna migración por generar?
+python manage.py makemigrations --check --dry-run --settings=echoreviews.test_settings
+
+# Frontend
+cd ../echoreviews-front
+npm run typecheck
+npm run build
+```
+
+Los tests cubren las reglas que sostienen el proyecto, no el porcentaje de
+líneas: quién puede publicar, que el estado de moderación lo decida el backend
+y no el cliente, que la API devuelva siempre la misma forma, que una obra nueva
+llegue completa, que aprobar una propuesta reenganche todas sus reseñas, que
+moderar no permita reescribir el texto ajeno, que aprobar un hashtag lo
+publique de verdad y etiquete las reseñas que lo pidieron, y que nadie pueda
+darse de alta como administrador ni ocupar un nombre de usuario ya tomado, y
+que un recorte inválido devuelva la portada intacta en vez de arruinarla, y
+que moderar desde el admin deje la base igual que moderar por la API, que
+buscar no sea una puerta trasera para leer lo que el listado público esconde, y
+que paginar reparta las reseñas sin duplicar ninguna ni perder ninguna.
+
+Cada regla se comprueba además al revés, rompiéndola a propósito para ver si
+algún test se da cuenta. Un test que sigue en verde con el código roto no
+está cuidando nada.
+
+Hay cuatro que no miran el código sino los **datos de prueba**: que toda
+portada que nombra el seed esté versionada en `seed_assets/`, que ninguna
+reseña se quede sin obra, que el motivo de rechazo solo exista donde
+corresponde, y que el seed cubra los tres estados de moderación. Los dos
+primeros nacieron de errores reales que se descubrieron mirando el sitio con
+las imágenes rotas; ahora se descubren en la CI.
+
+---
+
+## ⚠️ Estado del proyecto
+
+Proyecto de portafolio, en desarrollo activo. Trabajo pendiente conocido:
+
+- Los avisos del formulario de reseñas siguen siendo `alert()` del navegador,
+  que no se puede estilizar ni encaja con el resto de la interfaz.
+- La búsqueda usa `icontains`, que en SQL es un `LIKE '%texto%'`. Un comodín al
+  principio no puede aprovechar el índice, así que la base recorre la tabla
+  entera. Con este catálogo es instantáneo; a partir de cierto tamaño el
+  siguiente paso sería búsqueda de texto completo.
+- **Rechazar una obra propuesta no exige motivo, y rechazar una reseña sí.**
+  `Review` tiene `rejection_reason` —lo piden la API, el formulario del admin
+  y un test—, pero `MediaSuggestion` no, así que quien propone una obra y se
+  la rechazan no se entera de por qué. Cerrar la asimetría no es solo agregar
+  el campo: haría falta una pantalla de «mis propuestas» donde el autor lo
+  lea, que hoy no existe. Queda anotado antes que resuelto a medias.
 
 ---
 
 ## 👨‍💻 Autor
-**Alejandro López** - *Desarrollador del proyecto*
+
+**Alejandro López** — [GitHub](https://github.com/alelopezv)

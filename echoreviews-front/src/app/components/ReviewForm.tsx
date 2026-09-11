@@ -1,6 +1,10 @@
-import { Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "../../services/api";
+import { MediaPosterEditor } from "./MediaPosterEditor";
+import type { CatalogMedia, Hashtag, MediaType } from "../../types";
+import type { Area } from "react-easy-crop";
+import { RELACION_DE_ASPECTO, TIPOS_DE_OBRA } from "../../lib/media";
+import axios from "axios";
 
 interface ReviewFormProps {
   onClose: () => void;
@@ -11,20 +15,95 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
   const [image, setImage] = useState<File | null>(null);
-  const [mediaList, setMediaList] = useState<any[]>([]);
+  const [preview, setPreview] = useState("");
+  const [mediaList, setMediaList] = useState<CatalogMedia[]>([]);
+  const [mediaListError, setMediaListError] = useState(false);
   const [mediaId, setMediaId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [mediaTitle, setMediaTitle] = useState("");
-  const [mediaType, setMediaType] = useState("anime");
+  // Sin valor por defecto, a propósito. Antes empezaba en "anime", y como el
+  // tipo decide la forma del recorte, subir la portada de un disco sin tocar
+  // el desplegable la recortaba 2:3 en el servidor —para siempre, porque el
+  // recorte se aplica al archivo— y después el sitio la mostraba dentro de un
+  // marco cuadrado, recortándola por segunda vez. Elegir mal era gratis y no
+  // se notaba hasta ver la obra publicada.
+  const [mediaType, setMediaType] = useState<MediaType | "">("");
+  const [cropData, setCropData] = useState<Area | null>(null);
+  const [mediaDescription, setMediaDescription] = useState("");
+
+  // Etiquetas. Son dos listas separadas porque viajan por caminos distintos:
+  // las del catálogo se mandan por id y se aplican de inmediato; las nuevas
+  // se mandan por nombre y quedan en la cola de moderación hasta que un
+  // admin las apruebe.
+  const [hashtagsDisponibles, setHashtagsDisponibles] = useState<Hashtag[]>([]);
+  const [hashtagsElegidos, setHashtagsElegidos] = useState<number[]>([]);
+  const [nuevosHashtags, setNuevosHashtags] = useState<string[]>([]);
+  const [entradaHashtag, setEntradaHashtag] = useState("");
+
+  // Cambiar el tipo de obra cambia la forma del recorte: un disco es cuadrado
+  // y un anime o un videojuego son 2:3. Un recorte confirmado con la forma
+  // anterior deja de valer.
+  //
+  // Y lo peor era que no se veía: al cambiar el tipo, el marco en pantalla se
+  // redibujaba con la forma nueva mientras cropData seguía guardando la vieja.
+  // O sea que corregir el tipo parecía arreglar el problema y en realidad
+  // enviaba igual el recorte equivocado. cropData solo se limpiaba al elegir
+  // otro archivo, que es el otro momento en que deja de tener sentido.
+  useEffect(() => {
+    setCropData(null);
+  }, [mediaType]);
 
   useEffect(() => {
-    api.get("media/")
-      .then(res => {
+    api
+      .get("media/")
+      .then((res) => {
         setMediaList(res.data);
+        setMediaListError(false);
       })
-      .catch(err => console.error(err));
+      .catch((err) => {
+        console.error(err);
+        setMediaListError(true);
+      });
   }, []);
-  
+
+  useEffect(() => {
+    // Se pide aparte de las obras porque sus fallos son independientes: que
+    // no carguen las etiquetas no debería impedir escribir una reseña.
+    api
+      .get("hashtags/")
+      .then((res) => setHashtagsDisponibles(res.data.results || res.data))
+      .catch((err) => console.error(err));
+  }, []);
+
+  const alternarHashtag = (id: number) => {
+    setHashtagsElegidos((actuales) =>
+      actuales.includes(id)
+        ? actuales.filter((elegido) => elegido !== id)
+        : [...actuales, id]
+    );
+  };
+
+  const agregarHashtag = () => {
+    // Se normaliza igual que en el modelo de Django, que hace
+    // name.strip().lower() al guardar. Si el cliente no lo hiciera, escribir
+    // "Anime" propondría una etiqueta nueva que el backend acabaría
+    // fusionando con "anime": el usuario vería "pendiente de aprobación"
+    // sobre algo que ya existía.
+    const limpio = entradaHashtag.trim().toLowerCase().replace(/^#+/, "");
+    if (!limpio) return;
+
+    const yaExiste = hashtagsDisponibles.find((h) => h.name === limpio);
+
+    if (yaExiste) {
+      if (!hashtagsElegidos.includes(yaExiste.id)) {
+        setHashtagsElegidos((actuales) => [...actuales, yaExiste.id]);
+      }
+    } else if (!nuevosHashtags.includes(limpio)) {
+      setNuevosHashtags((actuales) => [...actuales, limpio]);
+    }
+
+    setEntradaHashtag("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,49 +115,72 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
       formData.append("content", comment);
       formData.append("rating", rating.toString());
 
-      // 🧠 MEDIA EXISTENTE
       if (mediaId) {
         formData.append("media", mediaId.toString());
-      } 
-      // 🧠 MEDIA NUEVA (SUGGESTION)
-      else {
+      } else {
         formData.append("media_title", mediaTitle);
         formData.append("media_type", mediaType);
+        formData.append("media_description", mediaDescription); 
       }
 
       if (image) {
         formData.append("image", image);
       }
 
+      if (cropData) {
+        formData.append("crop_x", cropData.x.toString());
+        formData.append("crop_y", cropData.y.toString());
+        formData.append("crop_width", cropData.width.toString());
+        formData.append("crop_height", cropData.height.toString());
+      }
+
+      // Un FormData no lleva arreglos: se repite la misma clave tantas veces
+      // como valores haya. Django las recoge con getlist() y DRF las entrega
+      // como lista al serializer.
+      for (const id of hashtagsElegidos) {
+        formData.append("hashtags", id.toString());
+      }
+      for (const nombre of nuevosHashtags) {
+        formData.append("hashtag_suggestions", nombre);
+      }
+
       await api.post("reviews/create/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       alert("Reseña enviada correctamente");
       onClose();
-    } catch (err: any) {
-      console.error(err);
+    } catch (err) {
+        console.error(err);
 
-      const errorMessage =
-        err.response?.data?.detail ||
-        "Error al enviar la reseña";
+        let mensaje = "Error al enviar la reseña";
 
-      alert(errorMessage);
-    }
+        if (axios.isAxiosError(err) && err.response?.data) {
+          const data = err.response.data;
+
+          if (typeof data.detail === "string") {
+            mensaje = data.detail;
+          } else {
+            // El backend responde {"image": "Requerido para proponer una obra
+            // nueva."} — sin clave "detail". Sin esto el usuario solo veía
+            // "Error al enviar la reseña" y no sabía qué campo le faltaba.
+            const campos = Object.entries(data)
+              .map(([campo, texto]) => `${campo}: ${texto}`)
+              .join("\n");
+            if (campos) mensaje = campos;
+          }
+        }
+
+        alert(mensaje);
+      }
   };
 
   return (
     <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
-      <h3 className="text-xl font-bold text-white mb-4">
-        Escribe tu Reseña
-      </h3>
+      <h3 className="text-xl font-bold text-white mb-4">Escribe tu Reseña</h3>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-
-
-        {/* 📝 TITLE */}
+        {/* 📝 TÍTULO */}
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -88,9 +190,17 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
 
         {/* 🎬 MEDIA SELECT */}
         <div>
-          <label className="block text-sm text-slate-300 mb-2">
-            Media
-          </label>
+          <label className="block text-sm text-slate-300 mb-2">Media</label>
+
+          {mediaListError ? (
+            <p className="text-xs text-red-400 mb-2">
+              No se pudo cargar la lista de medias. Puedes crear una nueva igual.
+            </p>
+          ) : mediaList.length === 0 ? (
+            <p className="text-xs text-slate-500 mb-2">
+              No hay medias aprobadas aún — crea una nueva abajo.
+            </p>
+          ) : null}
 
           <select
             value={mediaId ?? ""}
@@ -100,7 +210,6 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
             className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white"
           >
             <option value="">➕ Crear nueva media</option>
-
             {mediaList.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.title} ({m.type})
@@ -109,7 +218,7 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
           </select>
         </div>
 
-        {/* ➕ CREAR MEDIA (SOLO SI NO EXISTE) */}
+        {/* ➕ NUEVA MEDIA (solo si no eligió una existente) */}
         {!mediaId && (
           <div className="space-y-3">
             <input
@@ -118,25 +227,38 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
               placeholder="Título de nueva media"
               className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white"
             />
-
             <select
               value={mediaType}
-              onChange={(e) => setMediaType(e.target.value)}
+              // El navegador entrega un string cualquiera, así que hay que
+              // afirmarle a TypeScript que es uno de los tres válidos. La
+              // afirmación es honesta porque las opciones se generan de
+              // TIPOS_DE_OBRA, que está tipada: no hay forma de que llegue
+              // un valor que no esté en la unión.
+              onChange={(e) => setMediaType(e.target.value as MediaType | "")}
               className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white"
             >
-              <option value="anime">Anime</option>
-              <option value="music">Música</option>
-              <option value="game">Videojuego</option>
+              <option value="">¿Qué tipo de obra es?</option>
+              {TIPOS_DE_OBRA.map(({ valor, etiqueta }) => (
+                <option key={valor} value={valor}>
+                  {etiqueta}
+                </option>
+              ))}
             </select>
+            <textarea
+              value={mediaDescription}
+              onChange={(e) => setMediaDescription(e.target.value)}
+              rows={3}
+              placeholder="Sinopsis de la obra (de qué trata, no tu opinión)"
+              className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white"
+            />
           </div>
         )}
 
-        {/* 💬 COMMENT */}
+        {/* 💬 COMENTARIO */}
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Tu Comentario
           </label>
-
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
@@ -152,7 +274,6 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Tu Calificación
           </label>
-
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((value) => (
               <button
@@ -173,52 +294,166 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
           </div>
         </div>
 
+        {/* 🏷 HASHTAGS */}
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">
+            Etiquetas
+          </label>
 
-        {/* 🖼 IMAGE */}
+          {hashtagsDisponibles.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {hashtagsDisponibles.map((h) => {
+                const elegido = hashtagsElegidos.includes(h.id);
+                return (
+                  <button
+                    // type="button" es obligatorio: dentro de un <form>, un
+                    // <button> sin type es de tipo "submit" y enviaría la
+                    // reseña al primer clic en una etiqueta.
+                    type="button"
+                    key={h.id}
+                    onClick={() => alternarHashtag(h.id)}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                      elegido
+                        ? "bg-purple-500/30 text-purple-200 border-purple-500/50"
+                        : "bg-slate-700/50 text-slate-300 border-transparent hover:border-slate-500"
+                    }`}
+                  >
+                    #{h.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <input
+              value={entradaHashtag}
+              onChange={(e) => setEntradaHashtag(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  // Sin esto, Enter envía el formulario entero en vez de
+                  // agregar la etiqueta: el comportamiento por defecto de un
+                  // <input> dentro de un <form>.
+                  e.preventDefault();
+                  agregarHashtag();
+                }
+              }}
+              placeholder="Proponer una etiqueta nueva"
+              className="flex-1 px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white"
+            />
+            <button
+              type="button"
+              onClick={agregarHashtag}
+              disabled={!entradaHashtag.trim()}
+              className="px-4 rounded-xl bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors"
+            >
+              Agregar
+            </button>
+          </div>
+
+          {nuevosHashtags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {nuevosHashtags.map((nombre) => (
+                <span
+                  key={nombre}
+                  className="text-xs px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-2"
+                >
+                  #{nombre}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNuevosHashtags((actuales) =>
+                        actuales.filter((n) => n !== nombre)
+                      )
+                    }
+                    className="hover:text-amber-100"
+                    aria-label={`Quitar ${nombre}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          <p className="text-xs text-slate-500 mt-2">
+            Las etiquetas del catálogo se aplican al publicar. Las nuevas
+            {" "}<span className="text-amber-400">quedan pendientes</span>{" "}
+            hasta que un moderador las apruebe.
+          </p>
+        </div>
+
+        {/* 🖼 IMAGEN */}
         <div>
           <label className="block text-sm text-slate-300 mb-2">
             Imagen (opcional)
           </label>
 
-          <div className="flex items-center gap-3">
-            
-            {/* BOTÓN CUSTOM */}
+          <div className="flex items-center gap-3 flex-wrap">
             <label className="cursor-pointer px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-all">
               Seleccionar imagen
-
               <input
                 type="file"
                 accept="image/*"
                 className="hidden"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
-                    setImage(e.target.files[0]);
+                    const file = e.target.files[0];
+                    setImage(file);
+                    setPreview(URL.createObjectURL(file));
+                    setCropData(null);
                   }
                 }}
               />
             </label>
-
-            {/* NOMBRE DEL ARCHIVO */}
             <span className="text-sm text-slate-400">
               {image ? image.name : "Ningún archivo seleccionado"}
             </span>
           </div>
+
+          {/* El recortador no aparece hasta saber qué tipo de obra es, porque
+              el tipo ES la forma del marco. Dibujarlo antes obligaría a elegir
+              una forma por defecto, que es exactamente de donde salía el
+              problema. Dentro del && TypeScript ya sabe que mediaType no es la
+              cadena vacía, así que indexar RELACION_DE_ASPECTO es seguro. */}
+          {preview && mediaType && (
+            <div className="mt-4">
+              <MediaPosterEditor
+                image={preview}
+                onCropConfirm={(area) => setCropData(area)}
+                aspect={RELACION_DE_ASPECTO[mediaType]}
+              />
+              {cropData && (
+                <p className="text-xs text-green-400 mt-1">
+                  ✓ Recorte listo para enviar
+                </p>
+              )}
+            </div>
+          )}
+
+          {preview && !mediaType && (
+            <p className="text-xs text-amber-400 mt-3">
+              Elige más arriba el tipo de obra para poder recortar la portada:
+              un disco se recorta cuadrado; un anime o un videojuego, vertical.
+            </p>
+          )}
         </div>
 
-        {/* 🚀 BUTTONS */}
+        {/* 🚀 BOTONES */}
         <div className="flex gap-3">
           <button
             type="submit"
             disabled={
               rating === 0 ||
               title.trim() === "" ||
-              comment.trim() === ""
+              comment.trim() === "" ||
+              (!mediaId &&
+                (!mediaTitle.trim() || !mediaType || !mediaDescription.trim() || !image))
             }
             className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Publicar Reseña
           </button>
-
           <button
             type="button"
             onClick={onClose}
@@ -227,7 +462,6 @@ export function ReviewForm({ onClose }: ReviewFormProps) {
             Cancelar
           </button>
         </div>
-
       </form>
     </div>
   );

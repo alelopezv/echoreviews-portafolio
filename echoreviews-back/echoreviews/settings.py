@@ -23,12 +23,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!tlecf*c_0%l&_v*0@yc3l8x7r!b^_x!=ge76$%#nhi(w=5^n8'
+# El valor por defecto solo sirve para desarrollo local. En producción se
+# define DJANGO_SECRET_KEY como variable de entorno (ver .env.example).
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-!tlecf*c_0%l&_v*0@yc3l8x7r!b^_x!=ge76$%#nhi(w=5^n8",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0").split(",")
+    if h.strip()
+]
 
 
 # Application definition
@@ -42,17 +51,39 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'drf_spectacular',
     'hashtags',
     'media',
     'reviews',
     'users',
 ]
 
-# AUTH_USER_MODEL = "echoreviews.AppUser"
-
+# Desde qué direcciones acepta el navegador hablar con esta API.
+#
+# Estaba fija en localhost:5173, y eso es la otra mitad exacta del problema que
+# tenía el frontend con su dirección escrita a mano: aunque el sitio desplegado
+# supiera dónde está la API, el navegador bloquearía cada petición por venir de
+# un origen que esta lista no nombra. Las dos mitades tienen que salir del
+# entorno o el despliegue no funciona.
+#
+# Ojo con el formato: van con esquema y sin barra final —"https://midominio.com",
+# no "midominio.com" ni "https://midominio.com/"—. Es el error más común acá y
+# falla en silencio, porque el rechazo lo hace el navegador y no Django.
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    o.strip()
+    for o in os.getenv(
+        "DJANGO_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+    ).split(",")
+    if o.strip()
+]
+
+# El admin de Django sí usa cookies y CSRF, así que necesita conocer su propio
+# origen público cuando corre detrás de HTTPS. Sin esto, iniciar sesión en
+# /admin/ desde el dominio desplegado falla con "CSRF verification failed".
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if o.strip()
 ]
 
 MIDDLEWARE = [
@@ -123,12 +154,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
 LANGUAGE_CODE = "es-cl"
 TIME_ZONE = "America/Santiago"
 USE_I18N = True
@@ -148,12 +173,60 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "no-reply@echoreviews.local"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "mediafiles")
+
+# Detrás de un proxy (Railway, Render, Fly…) el TLS lo termina el proxy y la
+# petición llega a Django por HTTP plano. Sin esta línea `request.is_secure()`
+# devuelve False aunque el visitante haya entrado por HTTPS, y las cookies
+# marcadas como "solo por conexión segura" no se enviarían nunca.
+#
+# La cabecera la escribe el proxy, no el cliente; confiar en ella sin un proxy
+# delante sería creerle a cualquiera que la mande, por eso solo tiene sentido
+# en un despliegue que efectivamente esté detrás de uno.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Lo que `manage.py check --deploy` exige, activado solo cuando DEBUG está
+# apagado. En desarrollo no hay HTTPS: encender esto en local dejaría el sitio
+# redirigiendo a una dirección segura que no existe.
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # HSTS le dice al navegador "de aquí en adelante, este dominio solo por
+    # HTTPS", y lo recuerda durante este plazo. Es deliberadamente corto: si el
+    # certificado falla, el navegador NO deja entrar y la única salida es
+    # esperar a que venza. Un año, que es el valor habitual, convierte un error
+    # de configuración en un sitio inaccesible durante un año.
+    SECURE_HSTS_SECONDS = 3600
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "echoreviews.authentication.SoftJWTAuthentication",
     ),
+    # drf-spectacular lee las vistas y genera el esquema OpenAPI solo. Se
+    # prefiere a escribir la documentación a mano por una razón concreta: una
+    # documentación escrita aparte envejece mal. Cambias un serializer, se te
+    # olvida el archivo de docs, y a partir de ahí la documentación miente.
+    # Generándola del código, no puede desincronizarse.
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "API de EchoReviews",
+    "DESCRIPTION": (
+        "Reseñas de anime, música y videojuegos con moderación.\n\n"
+        "Leer es público; escribir exige un token JWT en la cabecera "
+        "`Authorization: Bearer <token>`, que se obtiene en `/api/token/`.\n\n"
+        "Toda reseña habla de una obra: o una del catálogo, o una propuesta "
+        "que espera aprobación. Las reseñas nacen en estado `pending` sin "
+        "importar lo que mande el cliente, y un moderador decide si se "
+        "publican o vuelven a su autor con un motivo."
+    ),
+    "VERSION": "1.0.0",
+    # El esquema en bruto no se sirve dentro de la interfaz: para eso está la
+    # ruta /api/schema/, y así la página de documentación carga más liviana.
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 SIMPLE_JWT = {

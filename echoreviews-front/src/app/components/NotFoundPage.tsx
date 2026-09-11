@@ -1,6 +1,7 @@
+import { AIRE_LATERAL } from "../../lib/estilos";
 export function NotFoundPage() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} py-24 text-center`}>
       <div className="mb-8">
         <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
           404

@@ -1,0 +1,30 @@
+# Normalización de finales de línea.
+#
+# Git para Windows viene con core.autocrlf=true por defecto, que convierte
+# LF a CRLF al hacer checkout. Para un archivo .sh que se ejecuta dentro de
+# un contenedor Linux eso lo rompe: el shebang pasa a ser "#!/bin/sh\r" y el
+# kernel busca un intérprete literalmente llamado "/bin/sh\r", que no existe.
+# El error resultante es engañoso, porque parece que falta el script:
+#
+#   exec /app/entrypoint.sh: no such file or directory
+#
+# Estas reglas fuerzan LF en los archivos que Linux tiene que ejecutar o
+# interpretar, sin importar la configuración de cada quien.
+
+# Git decide qué es texto y lo guarda siempre con LF en el repositorio.
+* text=auto
+
+# Estos SIEMPRE se descargan con LF, incluso en Windows.
+*.sh        text eol=lf
+entrypoint.sh text eol=lf
+Dockerfile  text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+
+# Binarios: que Git no intente convertir nada.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
