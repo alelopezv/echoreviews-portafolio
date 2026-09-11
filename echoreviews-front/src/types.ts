@@ -4,6 +4,31 @@
 export type MediaType = "anime" | "music" | "game";
 export type ModerationStatus = "pending" | "approved" | "rejected";
 
+/** La envoltura que pone DRF alrededor de un listado paginado.
+ *
+ * Es genérica porque la forma es siempre la misma y lo único que cambia es
+ * qué va dentro: `Pagina<Review>` para /api/reviews/.
+ *
+ * `count` es el TOTAL de elementos, no el tamaño de la página. Confundirlos es
+ * el error clásico al paginar: el sitio anunciaría "5 reseñas publicadas" para
+ * siempre, sin importar cuántas haya. */
+export interface Pagina<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
+/** Las tres cifras de la portada: /api/reviews/stats/
+ *
+ * Vienen del servidor y no de contar la lista que acaba de llegar, porque esa
+ * lista ahora es una página de cinco. Un agregado se pregunta, no se deduce. */
+export interface Estadisticas {
+  reviews: number;
+  writers: number;
+  hashtags: number;
+}
+
 /** La obra ANIDADA dentro de una reseña (la arma ReviewSerializer.get_media). */
 export interface Media {
   title: string;
@@ -51,6 +76,10 @@ export interface Hashtag {
   name: string;
   created_at: string;
   status: ModerationStatus;
+  /** Cuántas reseñas APROBADAS la usan. Lo calcula la base con un annotate().
+   *  Opcional porque las respuestas de crear y actualizar devuelven la etiqueta
+   *  suelta, sin anotar. */
+  reviews_count?: number;
 }
 
 /** El usuario autenticado: /api/users/me/ */

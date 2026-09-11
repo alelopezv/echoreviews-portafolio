@@ -1,17 +1,25 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { Hash, ArrowLeft } from "lucide-react";
 import api from "../../services/api";
 import { ReviewListItem } from "./ReviewListItem";
-import type { Review } from "../../types";
+import { Paginacion, POR_PAGINA } from "./Paginacion";
+import type { Pagina, Review } from "../../types";
 import { AIRE_LATERAL } from "../../lib/estilos";
 
 export function HashtagPage() {
   const { tag } = useParams();
 
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [total, setTotal] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
+
+  // La página vive en la URL, como el término del buscador y el filtro del
+  // catálogo: /hashtag/sci-fi?page=2 es un enlace que se puede compartir y al
+  // que el botón "atrás" vuelve.
+  const [params, setParams] = useSearchParams();
+  const pagina = Number(params.get("page")) || 1;
 
   useEffect(() => {
     if (!tag) return;
@@ -19,22 +27,21 @@ export function HashtagPage() {
     setCargando(true);
     setError(false);
 
-    // No hay endpoint que filtre reseñas por hashtag, así que se pide el
-    // listado y se filtra acá. Es la misma decisión que en MediaDetailPage y
-    // está anotada en el README: con este volumen alcanza, y el día que no
-    // alcance se resuelve con un ?hashtag= en el backend, no con más código
-    // en el cliente.
-    api.get("reviews/")
+    // El filtro lo hace el servidor. Antes esta página pedía TODAS las reseñas
+    // y se quedaba con las que llevaran la etiqueta; con la paginación eso
+    // dejó de funcionar, porque solo habrían llegado cinco y una reseña de la
+    // sexta en adelante sencillamente no habría existido para el filtro.
+    api.get<Pagina<Review>>("reviews/", { params: { hashtag: tag, page: pagina } })
       .then((res) => {
-        const todas: Review[] = res.data.results || res.data;
-        setReviews(todas.filter((r) => (r.hashtags ?? []).includes(tag)));
+        setReviews(res.data.results);
+        setTotal(res.data.count);
       })
       .catch((err) => {
         console.error(err);
         setError(true);
       })
       .finally(() => setCargando(false));
-  }, [tag]);
+  }, [tag, pagina]);
 
   return (
     <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} py-12`}>
@@ -55,8 +62,10 @@ export function HashtagPage() {
         </div>
 
         {!cargando && !error && (
+          /* `total` y no `reviews.length`: el primero es cuántas hay, el
+             segundo cuántas caben en esta página. */
           <p className="text-slate-400">
-            {reviews.length} {reviews.length === 1 ? "reseña encontrada" : "reseñas encontradas"}
+            {total} {total === 1 ? "reseña encontrada" : "reseñas encontradas"}
           </p>
         )}
       </div>
@@ -78,11 +87,20 @@ export function HashtagPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-8">
-          {reviews.map((review) => (
-            <ReviewListItem key={review.id} review={review} highlightTag={tag} />
-          ))}
-        </div>
+        <>
+          <div className="space-y-8">
+            {reviews.map((review) => (
+              <ReviewListItem key={review.id} review={review} highlightTag={tag} />
+            ))}
+          </div>
+
+          <Paginacion
+            pagina={pagina}
+            total={total}
+            porPagina={POR_PAGINA}
+            alCambiar={(n) => setParams({ page: String(n) })}
+          />
+        </>
       )}
     </div>
   );

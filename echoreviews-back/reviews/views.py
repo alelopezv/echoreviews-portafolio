@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions  # ✅ quitado "request" que pisaba el parámetro
+from rest_framework import generics, status, permissions  # ✅ quitado "request" que pisaba el parámetro
+from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 from django.utils import timezone
 from .models import Review
@@ -10,12 +11,55 @@ from hashtags.models import Hashtag, HashtagSuggestion
 from .serializers import ReviewSerializer, ReviewCreateSerializer
 
 
-# 🔍 Ver reviews aprobadas (público)
-class ApprovedReviewsView(APIView):
-    permission_classes = [permissions.AllowAny]
+class PaginacionDeResenas(PageNumberPagination):
+    """Cinco por página.
 
-    def get(self, request):
+    El número no es arbitrario: con diez reseñas en el catálogo de prueba, una
+    página de diez dejaría la paginación existiendo sin verse —una sola página,
+    ningún control, nada que demostrar—. Con cinco hay dos páginas y el
+    mecanismo se ve funcionando.
+
+    Se declara en esta vista y no como `DEFAULT_PAGINATION_CLASS` global a
+    propósito: el catálogo de obras y el de etiquetas también son listados,
+    pero el formulario de reseñas los usa como desplegables y necesita todos
+    los elementos. Paginarlos dejaría al usuario eligiendo entre las cinco
+    primeras etiquetas de veintitrés.
+    """
+
+    page_size = 5
+
+
+# 🔍 Ver reviews aprobadas (público)
+class ApprovedReviewsView(generics.ListAPIView):
+    """Listado público, con búsqueda, filtros y paginación.
+
+    Era una APIView que serializaba a mano. Pasarla a ListAPIView no es
+    cosmético: la paginación de DRF vive en las vistas genéricas —mira
+    `queryset` y `serializer_class` y parte la respuesta sola—, así que una
+    vista que arma el Response por su cuenta se salta ese mecanismo entero.
+    De paso, drf-spectacular ahora sí puede deducir qué devuelve.
+    """
+
+    permission_classes = [permissions.AllowAny]
+    serializer_class = ReviewSerializer
+    pagination_class = PaginacionDeResenas
+
+    def get_queryset(self):
         reviews = Review.objects.filter(status="approved")
+        parametros = self.request.query_params
+
+        # Filtrar por obra o por etiqueta se hacía en el navegador: se pedía el
+        # listado completo y se descartaba lo que no correspondía. Con la
+        # paginación eso deja de funcionar —el cliente solo vería cinco reseñas
+        # y filtraría sobre ellas—, así que el filtro se muda al servidor,
+        # que es donde debió estar siempre.
+        obra = parametros.get("media")
+        if obra:
+            reviews = reviews.filter(media_id=obra)
+
+        etiqueta = (parametros.get("hashtag") or "").strip()
+        if etiqueta:
+            reviews = reviews.filter(hashtags__name__iexact=etiqueta)
 
         # Búsqueda por texto: /api/reviews/?q=bebop
         #
@@ -32,14 +76,7 @@ class ApprovedReviewsView(APIView):
         # Las etiquetas también entran: son la forma en que está organizado el
         # sitio, y quien escribe "sci-fi" en el buscador espera resultados, no
         # que le digan que eso se busca en otra página.
-        #
-        # De ahí sale el .distinct(). Title, content y las dos obras cuelgan de
-        # ForeignKey —cada reseña tiene como mucho una obra y una propuesta—,
-        # así que ese JOIN devuelve una fila por reseña. hashtags es
-        # ManyToMany: el JOIN devuelve una fila POR ETIQUETA, y una reseña
-        # marcada con "sci-fi" y "scifi" saldría dos veces en los resultados
-        # de "sci". El .distinct() las colapsa.
-        termino = (request.query_params.get("q") or "").strip()
+        termino = (parametros.get("q") or "").strip()
         if termino:
             reviews = reviews.filter(
                 Q(title__icontains=termino)
@@ -47,10 +84,15 @@ class ApprovedReviewsView(APIView):
                 | Q(media__title__icontains=termino)
                 | Q(media_suggestion__title__icontains=termino)
                 | Q(hashtags__name__icontains=termino)
-            ).distinct()
+            )
 
-        serializer = ReviewSerializer(reviews, many=True, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # El .distinct() cubre los dos filtros que cruzan hashtags, que es
+        # ManyToMany: ese JOIN devuelve una fila POR ETIQUETA, así que una
+        # reseña marcada con "sci-fi" y "scifi" saldría dos veces al buscar
+        # "sci". Con ForeignKey no pasa —cada reseña tiene como mucho una obra—
+        # pero aplicarlo siempre cuesta nada y evita depender de qué filtro se
+        # usó para decidir si hace falta.
+        return reviews.distinct()
 
 
 # 📝 Crear review

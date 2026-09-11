@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 
+from django.db.models import Count, Q
 from django.utils import timezone
 from .models import Hashtag, HashtagSuggestion
 from .serializers import HashtagSerializer
@@ -141,7 +142,22 @@ class HashtagListView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        hashtags = Hashtag.objects.filter(status="approved")  # 🔥 importante
+        # El conteo lo hace la base con un solo SELECT, no el navegador
+        # pidiendo todas las reseñas para recorrerlas.
+        #
+        # El `filter=` del Count es lo importante: sin él contaría también las
+        # reseñas pendientes y rechazadas, y la página de etiquetas prometería
+        # reseñas que nadie puede ver. Es el mismo criterio del listado
+        # público, escrito una vez más donde toca.
+        hashtags = (
+            Hashtag.objects.filter(status="approved")  # 🔥 importante
+            # "review" en singular: Review.hashtags no declara related_name, así
+            # que Django nombra la relación inversa con el modelo en minúsculas.
+            .annotate(
+                reviews_count=Count("review", filter=Q(review__status="approved"))
+            )
+            .order_by("name")
+        )
         serializer = HashtagSerializer(hashtags, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

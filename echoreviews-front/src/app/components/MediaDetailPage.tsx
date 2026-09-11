@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { ArrowLeft, Star } from "lucide-react";
 import api from "../../services/api";
-import type { CatalogMedia, Review } from "../../types";
+import { Paginacion, POR_PAGINA } from "./Paginacion";
+import type { CatalogMedia, Pagina, Review } from "../../types";
 import { claseDeAspecto } from "../../lib/media";
 import { AIRE_LATERAL } from "../../lib/estilos";
 
@@ -14,8 +15,12 @@ export function MediaDetailPage() {
 
   const [media, setMedia] = useState<CatalogMedia | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [total, setTotal] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
+
+  const [params, setParams] = useSearchParams();
+  const pagina = Number(params.get("page")) || 1;
 
   useEffect(() => {
     if (!id) return;
@@ -24,18 +29,18 @@ export function MediaDetailPage() {
     // después la otra. Con dos llamadas independientes, tarda lo que la más
     // lenta y no la suma de ambas.
     Promise.all([
-      api.get(`media/${id}/`),
-      api.get("reviews/"),
+      api.get<CatalogMedia>(`media/${id}/`),
+      // El filtro lo hace el servidor con ?media=<id>. Antes esta página pedía
+      // TODAS las reseñas y se quedaba con las que coincidieran por TÍTULO
+      // —comparando textos en vez de identificadores— y ni siquiera leía
+      // `.results`, así que con la respuesta paginada habría reventado con un
+      // "filter is not a function".
+      api.get<Pagina<Review>>("reviews/", { params: { media: id, page: pagina } }),
     ])
       .then(([mediaRes, reviewsRes]) => {
         setMedia(mediaRes.data);
-
-        // No hay endpoint que filtre reseñas por obra, así que se filtra acá.
-        // Para un catálogo chico está bien; si algún día crecen las reseñas,
-        // esto se resuelve en el backend con un ?media=<id>.
-        setReviews(
-          reviewsRes.data.filter((r: Review) => r.media?.title === mediaRes.data.title)
-        );
+        setReviews(reviewsRes.data.results);
+        setTotal(reviewsRes.data.count);
       })
       .catch((err) => {
         console.error(err);
@@ -44,7 +49,7 @@ export function MediaDetailPage() {
       // finally corre pase lo que pase: así el "Cargando…" desaparece
       // también cuando la petición falla.
       .finally(() => setCargando(false));
-  }, [id]);
+  }, [id, pagina]);
 
   if (cargando) {
     return (
@@ -105,7 +110,8 @@ export function MediaDetailPage() {
       {/* Reseñas de esta obra */}
       <div className="mt-16">
         <h2 className="text-2xl font-bold text-white mb-6">
-          Reseñas de esta obra ({reviews.length})
+          {/* `total` y no `reviews.length`: cuántas hay, no cuántas caben acá. */}
+          Reseñas de esta obra ({total})
         </h2>
 
         {reviews.length === 0 ? (
@@ -138,6 +144,13 @@ export function MediaDetailPage() {
                 </div>
               </Link>
             ))}
+
+            <Paginacion
+              pagina={pagina}
+              total={total}
+              porPagina={POR_PAGINA}
+              alCambiar={(n) => setParams({ page: String(n) })}
+            />
           </div>
         )}
       </div>

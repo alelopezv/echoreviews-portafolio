@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Hash, TrendingUp } from "lucide-react";
 import api from "../../services/api";
-import type { Hashtag, Review } from "../../types";
+import type { Hashtag } from "../../types";
 import { AIRE_LATERAL } from "../../lib/estilos";
 
 interface EtiquetaConUso {
@@ -16,30 +16,19 @@ export function AllHashtagsPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    // Dos fuentes distintas y las dos hacen falta:
-    //   /api/hashtags/ es el catálogo aprobado — la verdad sobre qué
-    //     etiquetas existen, incluidas las que todavía no usa nadie.
-    //   /api/reviews/ da el uso real, porque cada reseña trae sus etiquetas.
-    // Promise.all las pide a la vez: tarda lo que la más lenta, no la suma.
-    Promise.all([
-      api.get("hashtags/"),
-      api.get("reviews/"),
-    ])
-      .then(([hashtagsRes, reviewsRes]) => {
-        const catalogo: Hashtag[] = hashtagsRes.data.results || hashtagsRes.data;
-        const reviews: Review[] = reviewsRes.data.results || reviewsRes.data;
-
-        // Cuántas reseñas usan cada etiqueta. Se cuenta una sola vez sobre
-        // todas las reseñas en vez de recorrerlas por cada hashtag.
-        const usos = new Map<string, number>();
-        for (const review of reviews) {
-          for (const tag of review.hashtags ?? []) {
-            usos.set(tag, (usos.get(tag) ?? 0) + 1);
-          }
-        }
-
+    // Una sola petición. Antes eran dos: el catálogo de etiquetas y TODAS las
+    // reseñas, que se recorrían en el navegador para contar cuántas usaba cada
+    // una. Funcionaba mientras el listado viniera completo, y se rompió con la
+    // paginación —habría contado sobre cinco reseñas y dicho que casi todo
+    // tiene cero—.
+    //
+    // Ahora el conteo viene calculado por la base con un annotate(), que es de
+    // quien era el trabajo desde el principio: contar filas es lo que sabe
+    // hacer una base de datos.
+    api.get<Hashtag[]>("hashtags/")
+      .then((res) => {
         setEtiquetas(
-          catalogo.map((h) => ({ name: h.name, count: usos.get(h.name) ?? 0 }))
+          res.data.map((h) => ({ name: h.name, count: h.reviews_count ?? 0 }))
         );
       })
       .catch((err) => {

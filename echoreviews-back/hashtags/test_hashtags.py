@@ -116,6 +116,41 @@ def test_el_listado_publico_solo_muestra_los_aprobados(api):
 
 
 @pytest.mark.django_db
+def test_el_listado_dice_cuantas_resenas_usa_cada_etiqueta(api, usuario, obra):
+    """El conteo lo hace la base, no el navegador.
+
+    Antes la página de etiquetas pedía TODAS las reseñas y las recorría para
+    contar. Funcionaba mientras el listado viniera completo; con paginación
+    contaría sobre cinco y diría que casi todo tiene cero.
+    """
+    from hashtags.models import Hashtag
+    from reviews.models import Review
+
+    popular = Hashtag.objects.create(name="popular", status="approved")
+    sin_uso = Hashtag.objects.create(name="sin-uso", status="approved")
+
+    for n in range(3):
+        resena = Review.objects.create(
+            user=usuario, media=obra, title=f"R{n}",
+            content="...", rating=4, status="approved",
+        )
+        resena.hashtags.add(popular)
+
+    # Una pendiente con la misma etiqueta: no debe sumar, porque la página
+    # que promete esas reseñas no las va a mostrar.
+    escondida = Review.objects.create(
+        user=usuario, media=obra, title="Pendiente",
+        content="...", rating=4, status="pending",
+    )
+    escondida.hashtags.add(popular)
+
+    por_nombre = {h["name"]: h["reviews_count"] for h in api.get("/api/hashtags/").json()}
+
+    assert por_nombre["popular"] == 3
+    assert por_nombre["sin-uso"] == 0
+
+
+@pytest.mark.django_db
 def test_un_hashtag_creado_por_un_admin_aparece_en_la_lista(api, admin):
     """Crearlo siendo admin ES aprobarlo.
 

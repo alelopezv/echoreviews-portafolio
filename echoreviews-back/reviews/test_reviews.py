@@ -11,6 +11,17 @@ from media.views import aprobar_sugerencia
 from reviews.models import Review
 
 
+def resultados(respuesta):
+    """Las reseñas de una respuesta paginada.
+
+    /api/reviews/ devuelve {count, next, previous, results}. Los tests que
+    miran QUÉ salió leen `results`; los que miran CUÁNTAS hay leen `count`,
+    que es el total y no el tamaño de la página.
+    """
+    return respuesta.json()["results"]
+
+
+
 # --------------------------------------------------------------------------
 # 1. Quién puede publicar
 # --------------------------------------------------------------------------
@@ -76,7 +87,7 @@ def test_el_listado_publico_solo_muestra_aprobadas(api, usuario, obra, resena_ap
     respuesta = api.get("/api/reviews/")
 
     assert respuesta.status_code == 200
-    titulos = [r["title"] for r in respuesta.json()]
+    titulos = [r["title"] for r in resultados(respuesta)]
     assert titulos == ["Una obra maestra"]
 
 
@@ -94,7 +105,7 @@ def test_la_busqueda_mira_titulo_contenido_y_obra(api, usuario, obra, resena_apr
     )
 
     def titulos(termino):
-        return sorted(r["title"] for r in api.get(f"/api/reviews/?q={termino}").json())
+        return sorted(r["title"] for r in resultados(api.get(f"/api/reviews/?q={termino}")))
 
     assert titulos("maestra") == ["Una obra maestra"]          # por título
     assert titulos("vacío") == ["Una obra maestra"]            # por contenido
@@ -129,7 +140,7 @@ def test_se_puede_buscar_por_etiqueta_y_sin_repetir_resultados(api, resena_aprob
         Hashtag.objects.create(name="scifi-clasico", status="approved"),
     ])
 
-    encontradas = api.get("/api/reviews/?q=sci").json()
+    encontradas = resultados(api.get("/api/reviews/?q=sci"))
     assert [r["title"] for r in encontradas] == ["Una obra maestra"]
 
 
@@ -145,14 +156,14 @@ def test_buscar_no_saca_a_la_luz_lo_que_no_esta_aprobado(api, usuario, obra):
         content="Todavía no la revisa nadie.", rating=2, status="pending",
     )
 
-    assert api.get("/api/reviews/?q=secreto").json() == []
+    assert resultados(api.get("/api/reviews/?q=secreto")) == []
 
 
 @pytest.mark.django_db
 def test_una_busqueda_vacia_devuelve_el_listado_completo(api, resena_aprobada):
     """?q= sin texto (o con puros espacios) no es un filtro."""
-    assert len(api.get("/api/reviews/?q=").json()) == 1
-    assert len(api.get("/api/reviews/?q=%20%20").json()) == 1
+    assert api.get("/api/reviews/?q=").json()["count"] == 1
+    assert api.get("/api/reviews/?q=%20%20").json()["count"] == 1
 
 
 @pytest.mark.django_db
@@ -171,8 +182,134 @@ def test_se_puede_buscar_por_una_obra_todavia_pendiente(api, usuario, portada):
         title="Con propuesta", content="...", rating=5, status="approved",
     )
 
-    encontradas = api.get("/api/reviews/?q=lain").json()
+    encontradas = resultados(api.get("/api/reviews/?q=lain"))
     assert [r["title"] for r in encontradas] == ["Con propuesta"]
+
+
+def _muchas_resenas(usuario, obra, cuantas):
+    for n in range(cuantas):
+        Review.objects.create(
+            user=usuario, media=obra, title=f"Reseña {n}",
+            content="...", rating=4, status="approved",
+        )
+
+
+@pytest.mark.django_db
+def test_el_listado_viene_de_a_cinco_y_dice_cuantas_hay_en_total(api, usuario, obra):
+    """`count` es el total; `results` es la página.
+
+    Confundirlos es el error clásico al paginar: la portada anunciaría
+    "5 reseñas publicadas" para siempre, sin importar cuántas haya.
+    """
+    _muchas_resenas(usuario, obra, 12)
+
+    primera = api.get("/api/reviews/").json()
+    assert primera["count"] == 12          # el total, no la página
+    assert len(primera["results"]) == 5
+    assert primera["next"] is not None
+    assert primera["previous"] is None
+
+    ultima = api.get("/api/reviews/?page=3").json()
+    assert len(ultima["results"]) == 2     # 12 = 5 + 5 + 2
+    assert ultima["next"] is None
+
+
+@pytest.mark.django_db
+def test_ninguna_resena_sale_en_dos_paginas_ni_se_pierde(api, usuario, obra):
+    """Paginar reparte, no duplica ni descarta.
+
+    Sin un orden estable la base puede devolver las filas en cualquier orden y
+    la misma reseña aparecería en dos páginas mientras otra no aparece en
+    ninguna. Review.Meta.ordering es lo que lo impide.
+    """
+    _muchas_resenas(usuario, obra, 12)
+
+    vistas = []
+    for pagina in (1, 2, 3):
+        vistas += [r["id"] for r in api.get(f"/api/reviews/?page={pagina}").json()["results"]]
+
+    assert len(vistas) == 12
+    assert len(set(vistas)) == 12          # ninguna repetida
+
+
+@pytest.mark.django_db
+def test_filtrar_por_obra_y_por_etiqueta_lo_hace_el_servidor(api, usuario, obra, portada):
+    """Antes esto se filtraba en el navegador sobre el listado completo.
+
+    Con paginación eso deja de funcionar: el cliente solo vería cinco reseñas
+    y filtraría sobre ellas, así que una reseña de la sexta en adelante
+    sencillamente no existiría para el filtro.
+    """
+    from hashtags.models import Hashtag
+
+    otra_obra = Media.objects.create(
+        title="Paprika", type="anime", description="Sueños ajenos.",
+        image=portada, status="approved",
+    )
+    culto = Hashtag.objects.create(name="culto", status="approved")
+
+    _muchas_resenas(usuario, obra, 8)      # ocho de la primera obra
+    marcada = Review.objects.create(
+        user=usuario, media=otra_obra, title="La novena",
+        content="...", rating=5, status="approved",
+    )
+    marcada.hashtags.add(culto)
+
+    por_obra = api.get(f"/api/reviews/?media={otra_obra.id}").json()
+    assert por_obra["count"] == 1
+    assert por_obra["results"][0]["title"] == "La novena"
+
+    por_etiqueta = api.get("/api/reviews/?hashtag=culto").json()
+    assert por_etiqueta["count"] == 1
+
+    # Y la etiqueta no distingue mayúsculas: la URL la escribe una persona.
+    assert api.get("/api/reviews/?hashtag=CULTO").json()["count"] == 1
+
+
+@pytest.mark.django_db
+def test_filtrar_tampoco_muestra_lo_que_no_esta_aprobado(api, usuario, obra):
+    """El estado manda sobre cualquier filtro, igual que sobre la búsqueda."""
+    Review.objects.create(
+        user=usuario, media=obra, title="Pendiente",
+        content="...", rating=3, status="pending",
+    )
+
+    assert api.get(f"/api/reviews/?media={obra.id}").json()["count"] == 0
+
+
+@pytest.mark.django_db
+def test_las_cifras_de_la_portada_no_salen_de_una_pagina(api, usuario, obra, admin):
+    """Un agregado se pregunta, no se deduce de las reseñas que llegaron.
+
+    Este endpoint existe porque la portada contaba sobre la lista que acababa
+    de pedir. Con cinco por página habría anunciado "5 reseñas publicadas" para
+    siempre, y los autores serían los de esas cinco.
+    """
+    from hashtags.models import Hashtag
+
+    usada = Hashtag.objects.create(name="usada", status="approved")
+    Hashtag.objects.create(name="nunca-usada", status="approved")
+
+    _muchas_resenas(usuario, obra, 8)
+    del_admin = Review.objects.create(
+        user=admin, media=obra, title="Del moderador",
+        content="...", rating=4, status="approved",
+    )
+    del_admin.hashtags.add(usada)
+
+    # Una pendiente: no cuenta como publicada ni hace "activo" a su autor.
+    from django.contrib.auth.models import User
+    fantasma = User.objects.create_user("fantasma", password="x")
+    Review.objects.create(
+        user=fantasma, media=obra, title="En la cola",
+        content="...", rating=2, status="pending",
+    )
+
+    cifras = api.get("/api/reviews/stats/").json()
+
+    assert cifras["reviews"] == 9      # las 8 + la del admin, no la pendiente
+    assert cifras["writers"] == 2      # usuario y admin; el fantasma no
+    assert cifras["hashtags"] == 1     # "nunca-usada" no se anuncia
 
 
 # --------------------------------------------------------------------------
@@ -197,7 +334,7 @@ def test_todas_las_resenas_traen_las_mismas_claves(api, usuario, obra, portada, 
         title="Con propuesta", content="...", rating=5, status="approved",
     )
 
-    datos = api.get("/api/reviews/").json()
+    datos = resultados(api.get("/api/reviews/"))
     assert len(datos) == 2
 
     claves_primera, claves_segunda = set(datos[0]), set(datos[1])
@@ -395,7 +532,7 @@ def test_el_ciclo_de_rechazo_devuelve_la_resena_a_su_autor(api, usuario, admin, 
     assert resena_aprobada.rejection_reason == "Desarrolla más la opinión."
 
     # Desaparece del listado público…
-    assert api.get("/api/reviews/").json() == []
+    assert resultados(api.get("/api/reviews/")) == []
 
     # …pero su autor la ve, con el motivo.
     api.force_authenticate(user=usuario)
