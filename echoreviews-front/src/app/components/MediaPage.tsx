@@ -4,7 +4,7 @@ import api from "../../services/api";
 import type { CatalogMedia } from "../../types";
 import { claseDeAspecto, TIPOS_DE_OBRA } from "../../lib/media";
 import { EstadoDeLista } from "./EstadoDeLista";
-import { AIRE_LATERAL } from "../../lib/estilos";
+import { AIRE_LATERAL, AIRE_VERTICAL } from "../../lib/estilos";
 
 /** Una obra del catálogo, con su portada en la proporción que le toca. */
 function TarjetaDeObra({ media }: { media: CatalogMedia }) {
@@ -70,7 +70,7 @@ export function MediaPage() {
       : mediaList.filter((m) => m.type === filtro);
 
   return (
-    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} py-12`}>
+    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} ${AIRE_VERTICAL}`}>
 
       <h1 className="text-4xl font-bold text-white mb-8">
         Biblioteca de Medios

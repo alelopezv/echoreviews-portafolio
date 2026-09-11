@@ -5,7 +5,7 @@ import api from "../../services/api";
 import { ReviewListItem } from "./ReviewListItem";
 import { Paginacion, POR_PAGINA } from "./Paginacion";
 import type { Pagina, Review } from "../../types";
-import { AIRE_LATERAL } from "../../lib/estilos";
+import { AIRE_LATERAL, AIRE_VERTICAL } from "../../lib/estilos";
 
 export function HashtagPage() {
   const { tag } = useParams();
@@ -44,7 +44,7 @@ export function HashtagPage() {
   }, [tag, pagina]);
 
   return (
-    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} py-12`}>
+    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} ${AIRE_VERTICAL}`}>
       <Link
         to="/hashtags"
         className="inline-flex items-center gap-2 text-slate-400 hover:text-purple-400 transition-colors mb-8"
@@ -53,7 +53,7 @@ export function HashtagPage() {
         <span>Ver todos los hashtags</span>
       </Link>
 
-      <div className="mb-12">
+      <div className="mb-8 sm:mb-12">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
             <Hash className="w-6 h-6 text-purple-400" />

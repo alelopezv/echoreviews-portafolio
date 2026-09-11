@@ -5,7 +5,7 @@ import api from "../../services/api";
 import { ReviewListItem } from "./ReviewListItem";
 import { EstadoDeLista } from "./EstadoDeLista";
 import { Paginacion, POR_PAGINA } from "./Paginacion";
-import { AIRE_LATERAL } from "../../lib/estilos";
+import { AIRE_LATERAL, AIRE_VERTICAL } from "../../lib/estilos";
 
 export function AllReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -50,7 +50,7 @@ export function AllReviewsPage() {
     setParams(termino ? { q: termino, page: String(n) } : { page: String(n) });
 
   return (
-    <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} py-12`}>
+    <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} ${AIRE_VERTICAL}`}>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white">
           {termino ? "Resultados de la búsqueda" : "Todas las reseñas"}

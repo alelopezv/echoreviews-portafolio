@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Hash, TrendingUp } from "lucide-react";
 import api from "../../services/api";
 import type { Hashtag } from "../../types";
-import { AIRE_LATERAL } from "../../lib/estilos";
+import { AIRE_LATERAL, AIRE_VERTICAL } from "../../lib/estilos";
 
 interface EtiquetaConUso {
   name: string;
@@ -44,8 +44,8 @@ export function AllHashtagsPage() {
     .slice(0, 12);
 
   return (
-    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} py-12`}>
-      <div className="mb-12">
+    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} ${AIRE_VERTICAL}`}>
+      <div className="mb-8 sm:mb-12">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
             <Hash className="w-6 h-6 text-purple-400" />

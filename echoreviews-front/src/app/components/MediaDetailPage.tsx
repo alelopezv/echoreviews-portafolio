@@ -5,7 +5,7 @@ import api from "../../services/api";
 import { Paginacion, POR_PAGINA } from "./Paginacion";
 import type { CatalogMedia, Pagina, Review } from "../../types";
 import { claseDeAspecto } from "../../lib/media";
-import { AIRE_LATERAL } from "../../lib/estilos";
+import { AIRE_LATERAL, AIRE_VERTICAL } from "../../lib/estilos";
 
 export function MediaDetailPage() {
   // useParams lee el trozo variable de la URL. Como la ruta se declara
@@ -71,7 +71,7 @@ export function MediaDetailPage() {
   }
 
   return (
-    <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} py-12`}>
+    <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} ${AIRE_VERTICAL}`}>
       <Link
         to="/media"
         className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition-colors"
@@ -108,7 +108,7 @@ export function MediaDetailPage() {
       </div>
 
       {/* Reseñas de esta obra */}
-      <div className="mt-16">
+      <div className="mt-10 sm:mt-16">
         <h2 className="text-2xl font-bold text-white mb-6">
           {/* `total` y no `reviews.length`: cuántas hay, no cuántas caben acá. */}
           Reseñas de esta obra ({total})

@@ -5,7 +5,7 @@ import axios from "axios";
 import api from "../../services/api";
 import { useUsuarioActual } from "../../lib/sesion";
 import type { Hashtag, Review } from "../../types";
-import { AIRE_LATERAL } from "../../lib/estilos";
+import { AIRE_LATERAL, AIRE_VERTICAL } from "../../lib/estilos";
 
 /**
  * Corregir una reseña propia.
@@ -131,7 +131,7 @@ export function EditReviewPage() {
   }
 
   return (
-    <div className={`max-w-3xl mx-auto ${AIRE_LATERAL} py-12`}>
+    <div className={`max-w-3xl mx-auto ${AIRE_LATERAL} ${AIRE_VERTICAL}`}>
       <Link
         to={`/review/${id}`}
         className="inline-flex items-center gap-2 text-slate-400 hover:text-purple-400 transition-colors mb-8"

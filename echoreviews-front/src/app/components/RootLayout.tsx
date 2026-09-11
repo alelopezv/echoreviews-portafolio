@@ -1,10 +1,10 @@
 import { Outlet, Link, useLocation, useNavigate, ScrollRestoration } from "react-router-dom"
-import { Home, Hash, Pen, User, Search, Library, Menu, X } from "lucide-react";
+import { Home, Hash, Pen, User, Search, Library, Menu, X, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LoginModal } from "./LoginModal";
 import api from "../../services/api";
 import type { User as Usuario } from "../../types";
-import { AIRE_LATERAL } from "../../lib/estilos";
+import { AIRE_LATERAL, AIRE_VERTICAL } from "../../lib/estilos";
 
 /** Los enlaces de navegación, en un solo lugar.
  *
@@ -171,12 +171,13 @@ export function RootLayout() {
                 </button>
               )}
 
-              {/* Perfil y Salir también se apartan mientras se busca en móvil. */}
-              <div
-                className={`items-center gap-2 ${
-                  buscadorAbierto ? "hidden sm:flex" : "flex"
-                }`}
-              >
+              {/* Perfil y Salir viven en el menú cuando la pantalla es chica.
+                  Con el hamburguesa al lado ya no cabían: logo (150) + lupa
+                  (36) + persona (40) + "Salir" (60) + hamburguesa (36), más
+                  separaciones y aire lateral, daban 394 px en una pantalla de
+                  375. La cabecera se desbordaba y el hamburguesa quedaba
+                  medio fuera. */}
+              <div className="hidden md:flex items-center gap-2">
                 {isLoggedIn ? (
                   <>
                     {/* El saludo aparece recién cuando /users/me/ contesta, así
@@ -246,6 +247,47 @@ export function RootLayout() {
                   </Link>
                 )
               )}
+
+              <div className="pt-2 mt-2 border-t border-slate-800">
+                {isLoggedIn ? (
+                  <>
+                    {usuario && (
+                      <p className="px-4 py-2 text-sm text-slate-500">
+                        Hola, <span className="text-purple-300">{usuario.full_name}</span>
+                      </p>
+                    )}
+                    <Link
+                      to="/profile"
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                        isActive("/profile")
+                          ? "bg-purple-500/20 text-purple-300"
+                          : "text-slate-300 hover:text-white hover:bg-slate-800/50"
+                      }`}
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Perfil</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:text-white hover:bg-red-500/20 transition-colors"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span>Salir</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setShowLogin(true);
+                      setMenuAbierto(false);
+                    }}
+                    className="flex w-full items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/50 transition-colors"
+                  >
+                    <User className="w-5 h-5" />
+                    <span>Ingresar</span>
+                  </button>
+                )}
+              </div>
             </nav>
           )}
         </div>
@@ -273,8 +315,8 @@ export function RootLayout() {
       {/* En un teléfono, los 64 px del margen más los 48 del relleno inferior
           de cada página dejaban 112 px vacíos antes del pie: un sexto de la
           pantalla sin nada. En escritorio ese aire sí se agradece. */}
-      <footer className="border-t border-slate-800/50 bg-slate-950/50 mt-8 md:mt-16">
-        <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} py-12`}>
+      <footer className="border-t border-slate-800/50 bg-slate-950/50 mt-4 md:mt-16">
+        <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} ${AIRE_VERTICAL}`}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
               <Link to="/" className="flex items-center gap-2 mb-4">

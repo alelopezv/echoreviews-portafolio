@@ -5,7 +5,7 @@ import api from "../../services/api";
 import { ReviewListItem } from "./ReviewListItem";
 import { EstadoDeLista } from "./EstadoDeLista";
 import type { Estadisticas, Pagina, Review } from "../../types";
-import { AIRE_LATERAL } from "../../lib/estilos";
+import { AIRE_LATERAL, AIRE_VERTICAL } from "../../lib/estilos";
 
 export function HomePage() {
   const [latestReviews, setLatestReviews] = useState<Review[]>([]);
@@ -48,9 +48,9 @@ export function HomePage() {
     error ? "—" : cargando || n === undefined ? "…" : n;
 
   return (
-    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} py-12`}>
+    <div className={`max-w-7xl mx-auto ${AIRE_LATERAL} ${AIRE_VERTICAL}`}>
       {/* Hero Section */}
-      <div className="text-center mb-16">
+      <div className="text-center mb-10 sm:mb-16">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 mb-6">
           <Pen className="w-4 h-4 text-purple-400" />
           <span className="text-sm text-purple-300">Crítica cultural independiente</span>
@@ -143,7 +143,7 @@ export function HomePage() {
         </EstadoDeLista>
 
         {/* View All Button */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-8 sm:mt-12">
           <Link
             to="/all-reviews"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 text-white transition-all"

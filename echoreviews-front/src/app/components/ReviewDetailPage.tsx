@@ -49,7 +49,7 @@ export function ReviewDetailPage() {
   return (
     <div className="min-h-screen">
       {/* Back Button */}
-      <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} pt-8 flex items-center justify-between`}>
+      <div className={`max-w-5xl mx-auto ${AIRE_LATERAL} pt-6 sm:pt-8 flex items-center justify-between`}>
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-slate-400 hover:text-purple-400 transition-colors"
@@ -218,7 +218,7 @@ export function ReviewDetailPage() {
         </div>
 
         {/* More Reviews CTA */}
-        <div className="mt-12 text-center">
+        <div className="mt-8 sm:mt-12 text-center">
           <Link
             to="/"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all"
