@@ -71,16 +71,54 @@ se publica; reescribir el texto ajeno no es una opción que exista.</p>
 
 ## 📦 Puesta en marcha
 
-Necesitas **Docker** y **Node.js 18+**.
+### Opción rápida: todo con un comando
 
-### 1. Clonar el repositorio
+Si solo quieres **ver el proyecto funcionando**, el `docker-compose.yml` de la
+raíz levanta las tres piezas —frontend, API y base de datos— y las conecta
+entre sí. Solo necesitas **Docker**.
+
+```bash
+git clone https://github.com/alelopezv/echoreviews-portafolio.git
+cd echoreviews-portafolio
+docker compose up --build
+```
+
+Y en otra terminal, para poblarlo:
+
+```bash
+docker exec -it echoreviews-api-container python manage.py loaddata seed.json
+```
+
+Listo: **[localhost](http://localhost)**. El admin queda en
+[localhost/admin/](http://localhost/admin/) y la API en `localhost/api/`.
+
+> **Un solo puerto abierto.** El frontend se sirve con nginx en el 80, y ese
+> mismo nginx reenvía `/api/`, `/admin/` y las portadas hacia Django. El
+> navegador nunca habla directo con el backend, así que no hay CORS que
+> configurar: para él, todo viene del mismo origen.
+>
+> **Dos redes de Docker.** El backend pertenece a las dos; la base de datos
+> solo a la interna. El contenedor del frontend **no tiene ruta de red** hasta
+> MySQL — no es que esté prohibido, es que no existe:
+>
+> ```bash
+> docker compose exec front ping db   # falla: no resuelve el nombre
+> docker compose exec back  ping db   # responde
+> ```
+
+### Opción de desarrollo
+
+Para **trabajar en el código**, con recarga automática. Necesitas **Docker** y
+**Node.js 18+**.
+
+#### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/alelopezv/echoreviews-portafolio.git
 cd echoreviews-portafolio
 ```
 
-### 2. Levantar el backend
+#### 2. Levantar el backend
 
 ```bash
 cd echoreviews-back
@@ -94,7 +132,7 @@ automáticamente**, así que no hay que correr `migrate` a mano.
 > defecto del `docker-compose.yml` ya funcionan. Si quieres personalizarlas,
 > copia el archivo de ejemplo con `cp .env.example .env`.
 
-### 3. Cargar los datos de prueba
+#### 3. Cargar los datos de prueba
 
 Con los contenedores corriendo, en otra terminal:
 
@@ -102,7 +140,7 @@ Con los contenedores corriendo, en otra terminal:
 docker exec -it echoreviews-api-container python manage.py loaddata seed.json
 ```
 
-### 4. Levantar el frontend
+#### 4. Levantar el frontend
 
 ```bash
 cd ../echoreviews-front
@@ -110,7 +148,7 @@ npm install
 npm run dev
 ```
 
-### 5. Acceder
+#### 5. Acceder
 
 | Servicio | URL |
 |---|---|

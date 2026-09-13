@@ -1,0 +1,122 @@
+# EchoReviews completo: frontend, backend y base de datos.
+#
+# Este archivo levanta el proyecto entero. El que está en echoreviews-back/
+# sigue existiendo para trabajar solo en la API, con recarga automática del
+# código; este otro arma la aplicación ensamblada, como se vería desplegada.
+#
+# Se levanta desde la raíz:   docker compose up --build
+# Y se entra por:             http://localhost
+#
+# ── Por qué dos redes ───────────────────────────────────────────────────────
+#
+#   frontend ─── [front] ─── [back]
+#                              │
+#   backend  ────────────── [back] ─── [db]
+#
+# El backend pertenece a las DOS. Esa es la pieza que hace que funcione: habla
+# con el frontend por una red y con la base por la otra.
+#
+# Y la base de datos está SOLO en `backend`, así que el contenedor del
+# frontend no puede alcanzarla ni aunque quisiera — no es que esté prohibido,
+# es que no existe una ruta de red entre ellos. Se comprueba así:
+#
+#   docker compose exec front ping db     ← falla, no resuelve el nombre
+#   docker compose exec back  ping db     ← responde
+#
+# Es el mismo principio que separar una red pública de una interna en una
+# empresa: la capa que mira a internet no tiene por qué poder tocar la base.
+
+services:
+  # ── Frontend ──────────────────────────────────────────────────────────────
+  front:
+    build:
+      context: ./echoreviews-front
+      args:
+        # Ruta relativa, no una dirección completa: nginx reenvía /api/ al
+        # backend, así que el navegador solo habla con el puerto 80. Como
+        # todo sale del mismo origen, no hay CORS que configurar.
+        VITE_API_URL: /api/
+    image: echoreviews-front
+    container_name: echoreviews-front-container
+    ports:
+      - "80:80"
+    depends_on:
+      - back
+    restart: unless-stopped
+    networks:
+      - frontend
+
+  # ── Backend ───────────────────────────────────────────────────────────────
+  back:
+    # La imagen personalizada del proyecto: el Dockerfile de echoreviews-back,
+    # con Python 3.10, las dependencias y el entrypoint que espera a la base,
+    # copia las portadas del seed y aplica las migraciones.
+    build: ./echoreviews-back
+    image: echoreviews-api
+    container_name: echoreviews-api-container
+    env_file:
+      - path: ./echoreviews-back/.env
+        required: false
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: echoreviews_db
+      DB_USER: echoreviews_user
+      DB_PASSWORD: echoreviews_password
+    volumes:
+      # Las subidas de los usuarios en un volumen con nombre, no dentro del
+      # contenedor: sin esto, cada `docker compose up --build` borraría todas
+      # las portadas que alguien haya subido. Las del seed se recuperan solas
+      # porque el entrypoint las copia desde seed_assets/ al arrancar, pero
+      # las de los usuarios no están en ninguna otra parte.
+      - echoreviews_media:/app/mediafiles
+    # A propósito SIN `ports`. El único puerto abierto al exterior es el 80 del
+    # frontend; a la API se llega por http://localhost/api/ y al admin por
+    # http://localhost/admin/, los dos a través de nginx. Para depurar desde
+    # fuera se puede agregar `ports: ["8000:8000"]`, pero entonces habría dos
+    # puertas de entrada en vez de una.
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - frontend
+      - backend
+
+  # ── Base de datos ─────────────────────────────────────────────────────────
+  db:
+    # Misma configuración que el compose de echoreviews-back/: misma versión,
+    # mismas credenciales, misma comprobación de salud. Solo cambia el nombre
+    # del servicio, de `mysql` a `db`, y por eso DB_HOST arriba dice `db`.
+    image: mysql:8.4
+    container_name: echoreviews-mysql
+    environment:
+      MYSQL_DATABASE: echoreviews_db
+      MYSQL_USER: echoreviews_user
+      MYSQL_PASSWORD: echoreviews_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - echoreviews_mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    # `depends_on` sin esto solo espera a que el contenedor ARRANQUE, no a que
+    # MySQL esté listo para aceptar conexiones — y entre una cosa y la otra hay
+    # varios segundos en los que Django fallaría al migrar.
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # Sin `ports`: la base no se asoma al exterior. Para conectar un cliente
+    # como DBeaver se agregaría `ports: ["3307:3306"]`.
+    networks:
+      - backend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+volumes:
+  echoreviews_mysql_data:
+  echoreviews_media:

@@ -5,8 +5,11 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [
-    // The React and Tailwind plugins are both required for Make, even if
-    // Tailwind is not being actively used – do not remove them
+    // react() da el JSX y la recarga en caliente; tailwindcss() procesa las
+    // clases al compilar. Los dos hacen falta de verdad — el comentario que
+    // había acá venía de la plantilla de Figma Make y decía que eran
+    // obligatorios "aunque Tailwind no se use", que en este proyecto no es
+    // el caso: todo el estilado son clases de Tailwind.
     react(),
     tailwindcss(),
   ],

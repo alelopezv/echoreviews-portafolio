@@ -1,0 +1,16 @@
+# Lo que NO debe viajar al contexto de construcción.
+#
+# node_modules es el más importante: son 135 MB que Docker copiaría antes de
+# empezar, solo para que `npm ci` los borre y los reinstale. Y si la máquina
+# que construye es Windows, los binarios nativos que hay dentro son los
+# equivocados para la imagen de Linux.
+node_modules
+dist
+
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+README.md
