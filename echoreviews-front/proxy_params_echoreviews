@@ -1,0 +1,24 @@
+# Cabeceras que nginx le pasa a Django al reenviar una petición.
+#
+# En un archivo aparte porque las usan los cuatro bloques del proxy —/api/,
+# /admin/, /static/ y /media/— y una regla escrita cuatro veces termina
+# desincronizándose. Es la misma lección que en el resto del proyecto.
+
+# LA IMPORTANTE. Sin esto, Django recibiría Host: back:8000 y
+# `request.build_absolute_uri()` construiría las URLs de las portadas como
+# http://back:8000/media/…, que el NAVEGADOR no puede resolver: "back" solo
+# existe dentro de la red de Docker. Las imágenes saldrían todas rotas.
+#
+# Con $host, Django ve el mismo dominio que escribió el visitante y devuelve
+# http://localhost/media/…, que sí funciona.
+proxy_set_header Host $host;
+
+# Quién hizo la petición de verdad. Sin estas dos, Django vería la IP del
+# contenedor de nginx en todas: inútil para registros o límites por IP.
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+# Si el visitante entró por HTTPS. Es la cabecera que lee
+# SECURE_PROXY_SSL_HEADER en settings.py para que request.is_secure()
+# diga la verdad cuando hay un proxy delante terminando el TLS.
+proxy_set_header X-Forwarded-Proto $scheme;
