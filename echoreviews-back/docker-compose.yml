@@ -24,7 +24,6 @@ services:
       DB_PORT: 3306
       DB_NAME: echoreviews_db
       DB_USER: echoreviews_user
-      DB_PASSWORD: echoreviews_password
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -37,8 +36,6 @@ services:
     environment:
       MYSQL_DATABASE: echoreviews_db
       MYSQL_USER: echoreviews_user
-      MYSQL_PASSWORD: echoreviews_password
-      MYSQL_ROOT_PASSWORD: root_password
     volumes:
       - echoreviews_mysql_data:/var/lib/mysql
     restart: unless-stopped
