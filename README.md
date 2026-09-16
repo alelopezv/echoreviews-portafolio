@@ -167,8 +167,6 @@ hashtags con sus relaciones. Es el contenido que se ve en las capturas de
 arriba, aunque los contadores no calcen al dedo: cada una se tomó en un
 momento distinto del desarrollo.
 
-**Usuario administrador:** `admin` / `12345678`
-
 Las imágenes de las obras se versionan en `seed_assets/media/` y el contenedor las
 copia a `mediafiles/` al arrancar. La carpeta `mediafiles/` guarda además lo que
 suben los usuarios y por eso está en `.gitignore`.
