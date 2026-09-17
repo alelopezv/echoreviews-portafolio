@@ -1,2 +1,8 @@
 # Configuración local de herramientas, no del proyecto
 .claudeignore
+
+# Secretos de despliegue para el docker-compose.yml de la raíz. Nunca al repo:
+# ver .env.example para las variables que espera.
+.env
+.env.*
+!.env.example

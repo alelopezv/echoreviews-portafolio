@@ -62,6 +62,10 @@ services:
       DB_PORT: 3306
       DB_NAME: echoreviews_db
       DB_USER: echoreviews_user
+      # Mismo nombre de variable que usa `db` más abajo para MYSQL_PASSWORD:
+      # las dos leen de la única .env de la raíz, así que no pueden volver a
+      # desincronizarse como pasó en producción.
+      DB_PASSWORD: ${DB_PASSWORD:-echoreviews_password}
     volumes:
       # Las subidas de los usuarios en un volumen con nombre, no dentro del
       # contenedor: sin esto, cada `docker compose up --build` borraría todas
@@ -92,6 +96,8 @@ services:
     environment:
       MYSQL_DATABASE: echoreviews_db
       MYSQL_USER: echoreviews_user
+      MYSQL_PASSWORD: ${DB_PASSWORD:-echoreviews_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
     volumes:
       - echoreviews_mysql_data:/var/lib/mysql
     restart: unless-stopped
@@ -99,7 +105,7 @@ services:
     # MySQL esté listo para aceptar conexiones — y entre una cosa y la otra hay
     # varios segundos en los que Django fallaría al migrar.
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot_password"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-root_password}"]
       interval: 10s
       timeout: 5s
       retries: 10
