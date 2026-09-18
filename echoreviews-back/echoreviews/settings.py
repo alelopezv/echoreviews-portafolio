@@ -185,10 +185,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "mediafiles")
 # en un despliegue que efectivamente esté detrás de uno.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Lo que `manage.py check --deploy` exige, activado solo cuando DEBUG está
-# apagado. En desarrollo no hay HTTPS: encender esto en local dejaría el sitio
-# redirigiendo a una dirección segura que no existe.
-if not DEBUG:
+# Lo que `manage.py check --deploy` exige, pero atado a si el despliegue
+# efectivamente tiene HTTPS delante, no a si DEBUG está apagado.
+#
+# Son preguntas distintas: un servidor propio sin certificado (esta VM, por
+# ejemplo) puede perfectamente correr con DEBUG=False y seguir sin HTTPS. Si
+# esto dependiera solo de DEBUG, apagarlo redirigiría cada pedido a una
+# dirección segura que no existe, y el sitio entero dejaría de responder.
+DJANGO_USING_HTTPS = os.getenv("DJANGO_USING_HTTPS", "False").lower() in ("true", "1", "yes")
+if DJANGO_USING_HTTPS:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
