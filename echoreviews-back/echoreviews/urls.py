@@ -19,6 +19,7 @@ from django.urls import path, re_path, include
 
 from django.conf import settings
 from django.views.static import serve as servir_estatico
+from django.contrib.staticfiles.views import serve as servir_estatico_admin
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -49,4 +50,13 @@ urlpatterns = [
 # la vista de Django directamente en vez de ese atajo.
 urlpatterns += [
     re_path(r"^media/(?P<path>.*)$", servir_estatico, {"document_root": settings.MEDIA_ROOT}),
+]
+
+# Mismo problema, ahora con el CSS/JS del admin de Django: la vista de
+# django.contrib.staticfiles también se niega a servir nada con DEBUG
+# apagado, salvo que se le pase insecure=True a propósito —el nombre lo
+# dice: para un sitio con tráfico real conviene WhiteNoise o un servidor
+# de archivos de verdad. Para esta VM, de bajo tráfico, alcanza con esto.
+urlpatterns += [
+    re_path(r"^static/(?P<path>.*)$", servir_estatico_admin, kwargs={"insecure": True}),
 ]
