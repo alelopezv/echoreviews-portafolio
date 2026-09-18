@@ -15,10 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, re_path, include
 
 from django.conf import settings
-from django.conf.urls.static import static
+from django.views.static import serve as servir_estatico
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -40,5 +40,13 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
 
-# 🔥 esto es lo importante
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# django.conf.urls.static.static() trae, adentro suyo, un `if not DEBUG:
+# return []` — no registra nada cuando DEBUG está apagado, sin importar
+# cómo se la llame. Es a propósito: espera que en producción haya un
+# servidor de archivos de verdad delante. Acá no lo hay —nginx reenvía
+# /media/ a este mismo backend, ver nginx.conf— así que Django tiene que
+# poder servirlas igual, con DEBUG en cualquier estado. Por eso se usa
+# la vista de Django directamente en vez de ese atajo.
+urlpatterns += [
+    re_path(r"^media/(?P<path>.*)$", servir_estatico, {"document_root": settings.MEDIA_ROOT}),
+]
