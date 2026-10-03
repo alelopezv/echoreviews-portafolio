@@ -103,7 +103,7 @@ export function MediaDetailPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 mb-2">
             Sinopsis
           </h2>
-          <p className="text-slate-300 leading-relaxed">{media.description}</p>
+          <p className="text-slate-300 leading-relaxed whitespace-pre-line">{media.description}</p>
         </div>
       </div>
 
