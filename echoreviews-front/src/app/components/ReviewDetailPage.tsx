@@ -170,7 +170,7 @@ export function ReviewDetailPage() {
         {/* Content */}
         <div className="prose prose-invert prose-lg max-w-none">
           {review.content.split('\n\n').map((paragraph: string, index: number) => (
-            <p key={index} className="text-slate-300 mb-6 leading-relaxed">
+            <p key={index} className="text-slate-300 mb-6 leading-relaxed whitespace-pre-line">
               {paragraph}
             </p>
           ))}

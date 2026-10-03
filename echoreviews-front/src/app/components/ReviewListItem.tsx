@@ -92,7 +92,7 @@ export function ReviewListItem({ review, highlightTag }: ReviewListItemProps) {
               </span>
             )}
 
-            <p className="text-slate-400 mb-4 line-clamp-2">
+            <p className="text-slate-400 mb-4 line-clamp-2 whitespace-pre-line">
               {review.content.length > 120
                 ? `${review.content.slice(0, 120)}…`
                 : review.content}

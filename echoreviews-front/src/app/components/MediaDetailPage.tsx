@@ -103,7 +103,7 @@ export function MediaDetailPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 mb-2">
             Sinopsis
           </h2>
-          <p className="text-slate-300 leading-relaxed">{media.description}</p>
+          <p className="text-slate-300 leading-relaxed whitespace-pre-line">{media.description}</p>
         </div>
       </div>
 
@@ -129,7 +129,7 @@ export function MediaDetailPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-white font-semibold mb-1">{review.title}</h3>
-                    <p className="text-slate-400 text-sm line-clamp-2">
+                    <p className="text-slate-400 text-sm line-clamp-2 whitespace-pre-line">
                       {review.content}
                     </p>
                     <p className="text-slate-500 text-xs mt-2">
