@@ -8,12 +8,16 @@ que proponen.
 
 El proyecto está dividido en dos partes:
 
-- 🔧 **Backend** — API REST con Django y Django REST Framework, sobre MySQL y Docker
+- 🔧 **Backend** — API REST con Python, Django y Django REST Framework, sobre MySQL y Docker
 - 🎨 **Frontend** — React + Vite + TypeScript
 
 ---
 
 ## 📸 Capturas
+
+[![Ver el recorrido completo en video](https://img.youtube.com/vi/2iI8aZE1gA0/0.jpg)](https://youtu.be/2iI8aZE1gA0)
+
+*Recorrido completo del sitio en video — o las capturas de abajo, si prefieres ir directo al grano.*
 
 ![Portada de EchoReviews](docs/screenshots/portada.jpg)
 
